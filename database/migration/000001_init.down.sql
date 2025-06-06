@@ -1,4 +1,0 @@
-DROP TABLE IF EXISTS websiteTicks;
-DROP TABLE IF EXISTS region;
-DROP TABLE IF EXISTS website;
-DROP TYPE IF EXISTS websiteStatus;
