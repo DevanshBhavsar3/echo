@@ -1,0 +1,12 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries:
+    - "queries/website.sql"
+    schema:
+    - "schema/website.sql"
+    gen:
+      go:
+        package: "db"
+        out: "sqlc"
+        sql_package: "database/sql"
