@@ -1,0 +1,6 @@
+/database/migration
+/database/sqlc
+.idea
+.env
+go.work.sum
+go.work
