@@ -3,7 +3,7 @@ CREATE TYPE websiteStatus AS ENUM ('Up', 'Down', 'Unknown');
 CREATE TABLE website (
                          "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                          "url" TEXT NOT NULL,
-	                     "health_check_route" TEXT DEFAULT '/',
+	                     "frequency" INTERVAL DEFAULT '3min',
                          "created_at" TIMESTAMP(3) NOT NULL DEFAULT NOW()
 );
 

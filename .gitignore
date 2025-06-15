@@ -1,6 +1,3 @@
-/publisher
-/worker
-
 tmp
 .env
 bin/

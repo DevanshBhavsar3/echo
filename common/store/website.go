@@ -7,26 +7,26 @@ import (
 )
 
 type Website struct {
-	ID               string    `json:"id"`
-	Url              string    `json:"url"`
-	HealthCheckRoute string    `json:"health_check_route"`
-	CreatedAt        time.Time `json:"created_at"`
+	ID        string    `json:"id"`
+	Url       string    `json:"url"`
+	Frequency string    `json:"frequency"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type WebsiteStorage struct {
 	db *sql.DB
 }
 
-func (m *WebsiteStorage) CreateWebsite(ctx context.Context, w Website) (*string, error) {
+func (s *WebsiteStorage) CreateWebsite(ctx context.Context, w Website) (*string, error) {
 	query := `
-			INSERT INTO "website" (url, health_check_route)
+			INSERT INTO "website" (url, frequency)
 			VALUES ($1, $2)
 			RETURNING id
 	`
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	err := m.db.QueryRowContext(ctx, query, w.Url, w.HealthCheckRoute).Scan(&w.ID)
+	err := s.db.QueryRowContext(ctx, query, w.Url, w.Frequency).Scan(&w.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -34,9 +34,9 @@ func (m *WebsiteStorage) CreateWebsite(ctx context.Context, w Website) (*string,
 	return &w.ID, nil
 }
 
-func (m *WebsiteStorage) GetWebsiteById(ctx context.Context, id string) (*Website, error) {
+func (s *WebsiteStorage) GetWebsiteById(ctx context.Context, id string) (*Website, error) {
 	query := `
-		SELECT id, url, health_check_route, created_at 
+		SELECT id, url, frequency, created_at 
 		FROM "website"
 		WHERE id = $1
 	`
@@ -45,10 +45,10 @@ func (m *WebsiteStorage) GetWebsiteById(ctx context.Context, id string) (*Websit
 	defer cancel()
 
 	website := &Website{}
-	err := m.db.QueryRowContext(ctx, query, id).Scan(
+	err := s.db.QueryRowContext(ctx, query, id).Scan(
 		&website.ID,
 		&website.Url,
-		&website.HealthCheckRoute,
+		&website.Frequency,
 		&website.CreatedAt,
 	)
 
@@ -62,4 +62,40 @@ func (m *WebsiteStorage) GetWebsiteById(ctx context.Context, id string) (*Websit
 	}
 
 	return website, nil
+}
+
+func (s *WebsiteStorage) GetWebsiteByFrequency(ctx context.Context, freq string) ([]Website, error) {
+	query := `
+		SELECT id, url, frequency, created_at 
+		FROM "website"
+		WHERE frequency = $1
+	 `
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	rows, err := s.db.QueryContext(ctx, query, freq)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	websites := []Website{}
+	for rows.Next() {
+		var w Website
+
+		err := rows.Scan(
+			&w.ID,
+			&w.Url,
+			&w.Frequency,
+			&w.CreatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		websites = append(websites, w)
+	}
+
+	return websites, nil
 }

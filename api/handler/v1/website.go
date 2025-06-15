@@ -20,8 +20,8 @@ func NewWebsiteHandler(app *shared.Application) *WebsiteHandler {
 }
 
 type AddWebsitePayload struct {
-	Url              string `json:"url" validate:"url"`
-	HealthCheckRoute string `json:"health_check_route" validate:"required,max=30"`
+	Url       string `json:"url" validate:"url"`
+	Frequency string `json:"frequency" validate:"oneof=30sec 1min 3min 5min"`
 }
 
 func (h *WebsiteHandler) AddWebsite(c *fiber.Ctx) error {
@@ -40,8 +40,8 @@ func (h *WebsiteHandler) AddWebsite(c *fiber.Ctx) error {
 	}
 
 	newWebsite := store.Website{
-		Url:              body.Url,
-		HealthCheckRoute: body.HealthCheckRoute,
+		Url:       body.Url,
+		Frequency: body.Frequency,
 	}
 
 	id, err := h.app.Store.Website.CreateWebsite(c.Context(), newWebsite)
