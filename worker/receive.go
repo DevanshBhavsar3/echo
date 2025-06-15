@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -8,11 +9,24 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/DevanshBhavsar3/common"
+	"github.com/DevanshBhavsar3/common/db"
 	"github.com/DevanshBhavsar3/common/store"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 func main() {
+	ctx := context.Background()
+	defer ctx.Done()
+
+	db, err := db.New(ctx, common.GetEnv("DATABASE_URL", "postgres://postgres:secret@localhost:5432?sslmode=disable"))
+	if err != nil {
+		log.Fatal("Failed to connect to postgres.")
+	}
+	defer db.Close()
+
+	storage := store.NewStorage(db)
+
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	if err != nil {
 		log.Fatalf("Failed to connect the queue.")
@@ -53,6 +67,9 @@ func main() {
 	forever := make(chan bool)
 
 	go func() {
+		ctx := context.Background()
+		defer ctx.Done()
+
 		for d := range msg {
 			var website store.Website
 
@@ -65,11 +82,23 @@ func main() {
 
 			res, err := Ping(website.Url)
 			if err != nil {
-				// Add to the queue back
+				// TODO: Add to the queue back
 				_ = fmt.Errorf("Failed to ping website: %v", res)
 				continue
 			}
 
+			// TODO: Complete this
+			ticks := []store.WebsiteTick{
+				{
+					Time:           time.Now(),
+					ResponseTimeMS: 00,
+					Status:         store.Up,
+					RegionID:       "",
+					WebsiteID:      website.ID,
+				},
+			}
+
+			storage.WebsiteTick.BatchInsertTicks(ctx, ticks)
 			fmt.Println(res)
 
 			log.Printf("Done")

@@ -1,21 +1,22 @@
-CREATE TYPE websiteStatus AS ENUM ('Up', 'Down', 'Unknown');
+CREATE TYPE "website_status" AS ENUM ('up', 'down', 'unknown');
 
-CREATE TABLE website (
+CREATE TABLE "website" (
                          "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                          "url" TEXT NOT NULL,
 	                     "frequency" INTERVAL DEFAULT '3min',
                          "created_at" TIMESTAMP(3) NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE region (
+CREATE TABLE "region" (
                         "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                         "name" TEXT NOT NULL
 );
 
-CREATE TABLE tick (
-                              "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                              "response_time_ms" INTEGER NOT NULL,
-                              "status" websiteStatus NOT NULL,
+CREATE TABLE "website_tick" (
+                              "id" UUID DEFAULT gen_random_uuid(),
+                              "time" TIMESTAMPTZ NOT NULL,
+                              "response_time_ms" TIME NOT NULL,
+                              "status" "website_status" NOT NULL,
                               "region_id" UUID NOT NULL,
                               "website_id" UUID NOT NULL,
 

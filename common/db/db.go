@@ -2,15 +2,15 @@ package db
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/lib/pq"
 )
 
 // Add connection pool
-func New(addr string) (*sql.DB, error) {
-	db, err := sql.Open("postgres", addr)
+func New(ctx context.Context, addr string) (*pgxpool.Pool, error) {
+	dbPool, err := pgxpool.New(ctx, addr)
 	if err != nil {
 		return nil, err
 	}
@@ -18,9 +18,9 @@ func New(addr string) (*sql.DB, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
-	if err := db.PingContext(ctx); err != nil {
+	if err := dbPool.Ping(ctx); err != nil {
 		return nil, err
 
 	}
-	return db, nil
+	return dbPool, nil
 }

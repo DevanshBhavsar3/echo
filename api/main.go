@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"time"
 
@@ -27,8 +28,11 @@ func main() {
 		},
 	}
 
+	ctx := context.Background()
+	defer ctx.Done()
+
 	// Connect to database
-	db, err := db.New(cfg.Db.Addr)
+	db, err := db.New(ctx, cfg.Db.Addr)
 	if err != nil {
 		log.Fatal(err)
 	}

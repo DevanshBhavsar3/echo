@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/DevanshBhavsar3/common/store"
 	"github.com/DevanshBhavsar3/echo-api/shared"
@@ -21,7 +22,7 @@ func NewWebsiteHandler(app *shared.Application) *WebsiteHandler {
 
 type AddWebsitePayload struct {
 	Url       string `json:"url" validate:"url"`
-	Frequency string `json:"frequency" validate:"oneof=30sec 1min 3min 5min"`
+	Frequency string `json:"frequency" validate:"oneof=30s 1m 3m 5m"`
 }
 
 func (h *WebsiteHandler) AddWebsite(c *fiber.Ctx) error {
@@ -39,9 +40,16 @@ func (h *WebsiteHandler) AddWebsite(c *fiber.Ctx) error {
 		})
 	}
 
+	freq, err := time.ParseDuration(body.Frequency)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid freq",
+		})
+	}
+
 	newWebsite := store.Website{
 		Url:       body.Url,
-		Frequency: body.Frequency,
+		Frequency: freq,
 	}
 
 	id, err := h.app.Store.Website.CreateWebsite(c.Context(), newWebsite)

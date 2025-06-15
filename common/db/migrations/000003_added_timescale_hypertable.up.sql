@@ -1,0 +1,1 @@
+SELECT create_hypertable('website_tick', by_range('time'));

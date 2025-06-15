@@ -2,19 +2,22 @@ package store
 
 import (
 	"context"
-	"database/sql"
+	"fmt"
 	"time"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Website struct {
-	ID        string    `json:"id"`
-	Url       string    `json:"url"`
-	Frequency string    `json:"frequency"`
-	CreatedAt time.Time `json:"created_at"`
+	ID        string        `json:"id"`
+	Url       string        `json:"url"`
+	Frequency time.Duration `json:"frequency"`
+	CreatedAt time.Time     `json:"created_at"`
 }
 
 type WebsiteStorage struct {
-	db *sql.DB
+	db *pgxpool.Pool
 }
 
 func (s *WebsiteStorage) CreateWebsite(ctx context.Context, w Website) (*string, error) {
@@ -26,7 +29,7 @@ func (s *WebsiteStorage) CreateWebsite(ctx context.Context, w Website) (*string,
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	err := s.db.QueryRowContext(ctx, query, w.Url, w.Frequency).Scan(&w.ID)
+	err := s.db.QueryRow(ctx, query, w.Url, w.Frequency).Scan(&w.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +48,7 @@ func (s *WebsiteStorage) GetWebsiteById(ctx context.Context, id string) (*Websit
 	defer cancel()
 
 	website := &Website{}
-	err := s.db.QueryRowContext(ctx, query, id).Scan(
+	err := s.db.QueryRow(ctx, query, id).Scan(
 		&website.ID,
 		&website.Url,
 		&website.Frequency,
@@ -53,8 +56,9 @@ func (s *WebsiteStorage) GetWebsiteById(ctx context.Context, id string) (*Websit
 	)
 
 	if err != nil {
+		fmt.Println(err)
 		switch {
-		case err == sql.ErrNoRows:
+		case err == pgx.ErrNoRows:
 			return nil, ErrNotFound
 		default:
 			return nil, err
@@ -74,7 +78,7 @@ func (s *WebsiteStorage) GetWebsiteByFrequency(ctx context.Context, freq string)
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	rows, err := s.db.QueryContext(ctx, query, freq)
+	rows, err := s.db.Query(ctx, query, freq)
 	if err != nil {
 		return nil, err
 	}

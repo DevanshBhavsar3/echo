@@ -2,9 +2,10 @@ package store
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 var (
@@ -24,11 +25,16 @@ type Storage struct {
 		GetByEmail(ctx context.Context, email string) (*User, error)
 		GetById(ctx context.Context, id string) (*User, error)
 	}
+
+	WebsiteTick interface {
+		BatchInsertTicks(ctx context.Context, t []WebsiteTick) error
+	}
 }
 
-func NewStorage(db *sql.DB) Storage {
+func NewStorage(db *pgxpool.Pool) Storage {
 	return Storage{
-		Website: &WebsiteStorage{db},
-		User:    &UserStore{db},
+		Website:     &WebsiteStorage{db},
+		User:        &UserStore{db},
+		WebsiteTick: &WebsiteTickStorage{db},
 	}
 }

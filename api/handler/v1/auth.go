@@ -74,8 +74,6 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 			})
 		}
 
-		fmt.Println(err)
-
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": "error creating user.",
 		})

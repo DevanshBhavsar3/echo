@@ -13,11 +13,16 @@ import (
 )
 
 func main() {
-	db, err := db.New(common.GetEnv("DATABASE_URL", "postgres://postgres:secret@localhost:5432?sslmode=disable"))
+	ctx := context.Background()
+	defer ctx.Done()
+
+	db, err := db.New(ctx, common.GetEnv("DATABASE_URL", "postgres://postgres:secret@localhost:5432?sslmode=disable"))
 	if err != nil {
 		log.Fatal("Failed to connect to postgres.")
 	}
-	store := store.NewStorage(db)
+	defer db.Close()
+
+	storage := store.NewStorage(db)
 
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	if err != nil {
@@ -47,10 +52,7 @@ func main() {
 
 	go func() {
 		for range time.Tick(time.Second * 30) {
-			ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-			defer cancel()
-
-			websites, err := store.Website.GetWebsiteByFrequency(ctx, "30sec")
+			websites, err := storage.Website.GetWebsiteByFrequency(ctx, "30sec")
 			if err != nil {
 				log.Fatalf("Can't query database for website.")
 			}
@@ -60,9 +62,6 @@ func main() {
 				if err != nil {
 					log.Fatalf("Failed to parse website struct to json in producer.")
 				}
-
-				ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-				defer cancel()
 
 				err = ch.PublishWithContext(ctx, "", q.Name, false, false, amqp.Publishing{
 					DeliveryMode: amqp.Persistent,

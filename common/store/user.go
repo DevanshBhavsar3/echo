@@ -4,8 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -43,7 +45,7 @@ func (p *password) Compare(text string) error {
 }
 
 type UserStore struct {
-	db *sql.DB
+	db *pgxpool.Pool
 }
 
 func (s *UserStore) Create(ctx context.Context, u User) (*string, error) {
@@ -56,13 +58,14 @@ func (s *UserStore) Create(ctx context.Context, u User) (*string, error) {
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	err := s.db.QueryRowContext(ctx, query, u.FirstName, u.LastName, u.Email, u.PhoneNumber, u.Avatar, u.Password.hash).Scan(&u.ID)
+	err := s.db.QueryRow(ctx, query, u.FirstName, u.LastName, u.Email, u.PhoneNumber, u.Avatar, u.Password.hash).Scan(&u.ID)
 
 	if err != nil {
+		fmt.Println(err)
 		switch {
-		case err.Error() == `pq: duplicate key value violates unique constraint "user_email_key"`:
+		case err.Error() == `ERROR: duplicate key value violates unique constraint "user_email_key" (SQLSTATE 23505)`:
 			return nil, ErrDuplicateEmail
-		case err.Error() == `pq: duplicate key value violates unique constraint "user_phone_number_key"`:
+		case err.Error() == `ERROR: duplicate key value violates unique constraint "user_phone_number_key" (SQLSTATE 23505)`:
 			return nil, ErrDuplicatePhoneNumber
 		default:
 			return nil, err
@@ -83,7 +86,7 @@ func (s *UserStore) GetByEmail(ctx context.Context, email string) (*User, error)
 	defer cancel()
 
 	user := &User{}
-	err := s.db.QueryRowContext(ctx, query, email).Scan(
+	err := s.db.QueryRow(ctx, query, email).Scan(
 		&user.ID,
 		&user.FirstName,
 		&user.LastName,
@@ -116,7 +119,7 @@ func (s *UserStore) GetById(ctx context.Context, id string) (*User, error) {
 	defer cancel()
 
 	user := &User{}
-	err := s.db.QueryRowContext(ctx, query, id).Scan(
+	err := s.db.QueryRow(ctx, query, id).Scan(
 		&user.ID,
 		&user.FirstName,
 		&user.LastName,
