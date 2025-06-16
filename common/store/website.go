@@ -66,12 +66,12 @@ func (s *WebsiteStorage) CreateWebsite(ctx context.Context, w Website) (*string,
 func (s *WebsiteStorage) GetWebsiteById(ctx context.Context, id string) (*Website, error) {
 	query := `
 		SELECT 
-            w.id AS website_id,
-            w.url AS website_url,
-            w.frequency AS website_frequency,
-            w.created_at AS website_created_at,
-            r.id AS region_id,
-            r.name AS region_name
+            w.id,
+            w.url,
+            w.frequency,
+            w.created_at,
+            r.id,
+            r.name
         FROM 
             website w
         LEFT JOIN 
@@ -125,9 +125,21 @@ func (s *WebsiteStorage) GetWebsiteById(ctx context.Context, id string) (*Websit
 
 func (s *WebsiteStorage) GetWebsiteByFrequency(ctx context.Context, freq string) ([]Website, error) {
 	query := `
-		SELECT id, url, frequency, created_at 
-		FROM "website"
-		WHERE frequency = $1
+		SELECT 
+            w.id,
+            w.url,
+            w.frequency,
+            w.created_at,
+            r.id,
+            r.name
+        FROM 
+            website w
+        LEFT JOIN 
+            website_region wr ON w.id = wr.website_id
+        LEFT JOIN 
+            region r ON wr.region_id = r.id
+        WHERE 
+            w.frequency = $1
 	 `
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
@@ -135,23 +147,34 @@ func (s *WebsiteStorage) GetWebsiteByFrequency(ctx context.Context, freq string)
 
 	rows, err := s.db.Query(ctx, query, freq)
 	if err != nil {
-		return nil, err
+		switch {
+		case err == pgx.ErrNoRows:
+			return nil, ErrNotFound
+		default:
+			return nil, err
+		}
 	}
 	defer rows.Close()
 
-	websites := []Website{}
+	var websites []Website
+
 	for rows.Next() {
 		var w Website
+		var r Region
 
-		err := rows.Scan(
+		err = rows.Scan(
 			&w.ID,
 			&w.Url,
 			&w.Frequency,
 			&w.CreatedAt,
+			&r.ID,
+			&r.Name,
 		)
 		if err != nil {
 			return nil, err
 		}
+
+		w.Regions = append(w.Regions, r)
 
 		websites = append(websites, w)
 	}

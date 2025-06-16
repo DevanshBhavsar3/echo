@@ -3,13 +3,15 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"time"
+
+	amqp "github.com/rabbitmq/amqp091-go"
 
 	"github.com/DevanshBhavsar3/common"
 	"github.com/DevanshBhavsar3/common/db"
 	"github.com/DevanshBhavsar3/common/store"
-	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 func main() {
@@ -32,44 +34,59 @@ func main() {
 
 	ch, err := conn.Channel()
 	if err != nil {
-		log.Fatalf("Failed to open channel")
+		log.Fatalf("Failed to open channel.")
 	}
 	defer ch.Close()
 
-	q, err := ch.QueueDeclare(
-		"websites-queue",
-		false,
+	err = ch.ExchangeDeclare(
+		"websites",
+		"direct",
+		true,
 		false,
 		false,
 		false,
 		nil,
 	)
 	if err != nil {
-		log.Fatalf("Failed to declare queue.")
+		log.Fatalf("Failed to declare an exchange.")
 	}
 
 	forever := make(chan bool)
 
 	go func() {
 		for range time.Tick(time.Second * 30) {
-			websites, err := storage.Website.GetWebsiteByFrequency(ctx, "30sec")
+			fmt.Println("Publishing 30s freq every 30 seconds.")
+			websites, err := storage.Website.GetWebsiteByFrequency(ctx, "30s")
 			if err != nil {
 				log.Fatalf("Can't query database for website.")
 			}
 
 			for _, w := range websites {
-				body, err := json.Marshal(w)
-				if err != nil {
-					log.Fatalf("Failed to parse website struct to json in producer.")
-				}
+				for _, r := range w.Regions {
+					ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+					defer cancel()
 
-				err = ch.PublishWithContext(ctx, "", q.Name, false, false, amqp.Publishing{
-					DeliveryMode: amqp.Persistent,
-					ContentType:  "application/json",
-					Body:         []byte(body),
-				})
-				if err != nil {
-					log.Fatal("Failed to publish message.")
+					body, err := json.Marshal(w)
+					if err != nil {
+						log.Fatalf("Failed to parse website struct to json in producer.")
+					}
+
+					err = ch.PublishWithContext(
+						ctx,
+						"websites",
+						r.Name,
+						false,
+						false,
+						amqp.Publishing{
+							DeliveryMode: amqp.Persistent,
+							ContentType:  "application/json",
+							Body:         []byte(body),
+						})
+					if err != nil {
+						log.Fatal("Failed to publish message.")
+					}
+
+					fmt.Printf("Published: %v to %v queue.\n", w, r)
 				}
 			}
 

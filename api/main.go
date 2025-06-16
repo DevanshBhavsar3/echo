@@ -5,13 +5,14 @@ import (
 	"log"
 	"time"
 
+	"github.com/go-playground/validator/v10"
+	_ "github.com/joho/godotenv/autoload"
+
 	"github.com/DevanshBhavsar3/common"
 	"github.com/DevanshBhavsar3/common/db"
 	"github.com/DevanshBhavsar3/common/store"
 	"github.com/DevanshBhavsar3/echo-api/auth"
 	"github.com/DevanshBhavsar3/echo-api/shared"
-	"github.com/go-playground/validator/v10"
-	_ "github.com/joho/godotenv/autoload"
 )
 
 func main() {
