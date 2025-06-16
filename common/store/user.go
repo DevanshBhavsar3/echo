@@ -2,11 +2,11 @@ package store
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -98,7 +98,7 @@ func (s *UserStore) GetByEmail(ctx context.Context, email string) (*User, error)
 	)
 	if err != nil {
 		switch err {
-		case sql.ErrNoRows:
+		case pgx.ErrNoRows:
 			return nil, ErrNotFound
 		default:
 			return nil, err
@@ -131,7 +131,7 @@ func (s *UserStore) GetById(ctx context.Context, id string) (*User, error) {
 	)
 	if err != nil {
 		switch err {
-		case sql.ErrNoRows:
+		case pgx.ErrNoRows:
 			return nil, ErrNotFound
 		default:
 			return nil, err

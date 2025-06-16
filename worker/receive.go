@@ -15,6 +15,7 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
+// NOTE: This will run on different regions
 func main() {
 	ctx := context.Background()
 	defer ctx.Done()
@@ -27,6 +28,7 @@ func main() {
 
 	storage := store.NewStorage(db)
 
+	// NOTE: This will connect to remote rebbitmq client
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	if err != nil {
 		log.Fatalf("Failed to connect the queue.")

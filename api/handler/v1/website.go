@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -21,8 +22,9 @@ func NewWebsiteHandler(app *shared.Application) *WebsiteHandler {
 }
 
 type AddWebsitePayload struct {
-	Url       string `json:"url" validate:"url"`
-	Frequency string `json:"frequency" validate:"oneof=30s 1m 3m 5m"`
+	Url       string   `json:"url" validate:"url"`
+	Frequency string   `json:"frequency" validate:"oneof=30s 1m 3m 5m"`
+	Regions   []string `json:"regions" validate:"min=1,dive,iso3166_1_alpha3"`
 }
 
 func (h *WebsiteHandler) AddWebsite(c *fiber.Ctx) error {
@@ -51,9 +53,27 @@ func (h *WebsiteHandler) AddWebsite(c *fiber.Ctx) error {
 		Url:       body.Url,
 		Frequency: freq,
 	}
+	for _, r := range body.Regions {
+		region, err := h.app.Store.Region.GetRegionByName(c.Context(), r)
+		if err != nil {
+			switch {
+			case err == store.ErrNotFound:
+				return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+					"error": "invalid region provided",
+				})
+			default:
+				return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+					"error": "failed to get regions",
+				})
+			}
+		}
+
+		newWebsite.Regions = append(newWebsite.Regions, *region)
+	}
 
 	id, err := h.app.Store.Website.CreateWebsite(c.Context(), newWebsite)
 	if err != nil {
+		fmt.Println(err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": "error creating website.",
 		})
