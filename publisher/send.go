@@ -54,13 +54,14 @@ func main() {
 	forever := make(chan bool)
 
 	go func() {
-		for range time.Tick(time.Second * 30) {
+		for range time.Tick(time.Second * 3) {
 			fmt.Println("Publishing 30s freq every 30 seconds.")
 			websites, err := storage.Website.GetWebsiteByFrequency(ctx, "30s")
 			if err != nil {
 				log.Fatalf("Can't query database for website.")
 			}
 
+			// TODO: Perform batch publish
 			for _, w := range websites {
 				for _, r := range w.Regions {
 					ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)

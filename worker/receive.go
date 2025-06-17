@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	_ "github.com/joho/godotenv/autoload"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -17,8 +18,8 @@ import (
 
 // NOTE: This will run on different regions
 func main() {
-	region, ok := os.LookupEnv("REGION")
-	if region == "" || !ok {
+	REGION, ok := os.LookupEnv("REGION")
+	if REGION == "" || !ok {
 		log.Fatal("Failed to determie the region.")
 		return
 	}
@@ -33,7 +34,12 @@ func main() {
 	}
 	defer db.Close()
 
-	// storage := store.NewStorage(db)
+	storage := store.NewStorage(db)
+
+	region, err := storage.Region.GetRegionByName(ctx, REGION)
+	if err != nil {
+		log.Fatal("Failed to get region id.")
+	}
 
 	// NOTE: This will connect to remote rebbitmq client
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
@@ -75,7 +81,7 @@ func main() {
 
 	err = ch.QueueBind(
 		q.Name,
-		region,
+		region.Name,
 		"websites",
 		false,
 		nil,
@@ -99,6 +105,7 @@ func main() {
 
 	forever := make(chan bool)
 
+	// NOTE: Message will be multiple websites
 	go func() {
 		fmt.Printf("Listening for messages in %v queue.\n", region)
 		for d := range msg {
@@ -111,23 +118,23 @@ func main() {
 				log.Fatalf("Failed to parse website struct to json in consumer.")
 			}
 
-			// TODO: Perform analytics on the request url
-			// ----------------
+			analyst := NewAnalytics(website.Url)
+			analyst.Ping()
 
-			GetAnalytics(website.Url)
+			ticks := []store.WebsiteTick{
+				{
+					Time:           time.Now(),
+					ResponseTimeMS: analyst.ResponseTimeMS,
+					Status:         analyst.Status,
+					RegionID:       region.ID,
+					WebsiteID:      website.ID,
+				},
+			}
 
-			// TODO: Complete this
-			// ticks := []store.WebsiteTick{
-			// 	{
-			// 		Time:           time.Now(),
-			// 		ResponseTimeMS: 00,       // fix
-			// 		Status:         store.Up, // fix
-			// 		RegionID:       "",       // fix
-			// 		WebsiteID:      website.ID,
-			// 	},
-			// }
-
-			// storage.WebsiteTick.BatchInsertTicks(ctx, ticks)
+			err = storage.WebsiteTick.BatchInsertTicks(ctx, ticks)
+			if err != nil {
+				log.Fatal(err)
+			}
 
 			log.Printf("Done")
 		}

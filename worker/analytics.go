@@ -1,35 +1,41 @@
 package main
 
 import (
-	"crypto/tls"
 	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptrace"
 	"time"
+
+	"github.com/DevanshBhavsar3/common/store"
 )
 
-func GetAnalytics(url string) {
-	req, _ := http.NewRequest("HEAD", url, nil)
+type Analytics struct {
+	Url            string
+	ResponseTimeMS int64
+	Status         store.WebsiteStatus
+}
 
-	var start, connect, dns, tlsHandshake time.Time
+func NewAnalytics(url string) *Analytics {
+	return &Analytics{
+		Url: url,
+	}
+}
+
+// TODO: Add request timeout
+func (a *Analytics) Ping() {
+	req, _ := http.NewRequest("HEAD", a.Url, nil)
+	req.Header.Set("User-Agent", "Echo-Monitor/1.0")
+
+	var start, connect time.Time
 
 	trace := &httptrace.ClientTrace{
-		DNSStart: func(dsi httptrace.DNSStartInfo) { dns = time.Now() },
-		DNSDone: func(ddi httptrace.DNSDoneInfo) {
-			fmt.Printf("DNS Done: %v\n", time.Since(dns))
+		ConnectStart: func(network, addr string) {
+			connect = time.Now()
 		},
-
-		TLSHandshakeStart: func() { tlsHandshake = time.Now() },
-		TLSHandshakeDone: func(cs tls.ConnectionState, err error) {
-			fmt.Printf("TLS Handshake: %v\n", time.Since(tlsHandshake))
-		},
-
-		ConnectStart: func(network, addr string) { connect = time.Now() },
 		ConnectDone: func(network, addr string, err error) {
-			fmt.Printf("Connect time: %v\n", time.Since(connect))
+			time.Since(connect)
 		},
-
 		GotFirstResponseByte: func() {
 			fmt.Printf("Time from start to first byte: %v\n", time.Since(start))
 		},
@@ -37,8 +43,19 @@ func GetAnalytics(url string) {
 
 	req = req.WithContext(httptrace.WithClientTrace(req.Context(), trace))
 	start = time.Now()
-	if _, err := http.DefaultTransport.RoundTrip(req); err != nil {
+	res, err := http.DefaultTransport.RoundTrip(req)
+	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("Total time: %v\n", time.Since(start))
+
+	switch {
+	case res.StatusCode >= 200 && res.StatusCode <= 403:
+		a.Status = store.Up
+	case res.StatusCode >= 500 && res.StatusCode <= 599:
+		a.Status = store.Down
+	default:
+		a.Status = store.Unknown
+	}
+
+	a.ResponseTimeMS = time.Since(start).Milliseconds()
 }

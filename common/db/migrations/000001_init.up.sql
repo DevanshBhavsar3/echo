@@ -15,7 +15,7 @@ CREATE TABLE "region" (
 CREATE TABLE "website_tick" (
                               "id" UUID DEFAULT gen_random_uuid(),
                               "time" TIMESTAMPTZ NOT NULL,
-                              "response_time_ms" TIME NOT NULL,
+                              "response_time_ms" INTEGER NOT NULL,
                               "status" "website_status" NOT NULL,
                               "region_id" UUID NOT NULL,
                               "website_id" UUID NOT NULL,
