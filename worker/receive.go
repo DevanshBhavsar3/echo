@@ -41,7 +41,7 @@ func main() {
 		log.Fatal("Failed to get region id.")
 	}
 
-	// NOTE: This will connect to remote rebbitmq client
+	// NOTE: This will connect to remote rabbitmq client
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	if err != nil {
 		log.Fatalf("Failed to connect the queue.")

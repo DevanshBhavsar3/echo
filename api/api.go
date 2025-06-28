@@ -6,6 +6,7 @@ import (
 	"github.com/DevanshBhavsar3/echo-api/handler/v1"
 	"github.com/DevanshBhavsar3/echo-api/shared"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 )
 
@@ -13,6 +14,9 @@ func mountApp(a *shared.Application) *fiber.App {
 	app := fiber.New()
 
 	app.Use(logger.New())
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "http://localhost:5173",
+	}))
 
 	// Create route handlers
 	handlers := NewHandler(a)

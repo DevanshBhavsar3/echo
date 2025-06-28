@@ -1,40 +1,25 @@
 import { ThemeProvider } from "./components/theme-provider";
-import { Navbar } from "./components/navbar";
-import { Button } from "./components/ui/button";
-import { HoverBorderGradient } from "./components/ui/hover-border-gradient";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import HomePage from "./pages/home";
+import SignupPage from "./pages/signup";
+import LoginPage from "./pages/login";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+
+const queryClient = new QueryClient()
 
 function App() {
   return (
-    <ThemeProvider>
-      <Navbar />
-      <main className="mx-auto flex min-h-screen max-w-7xl items-center justify-between">
-        <div className="flex flex-col gap-2">
-          <HoverBorderGradient
-            as={"text"}
-            className="flex items-center bg-white text-black dark:bg-black dark:text-white"
-          >
-            <p className="text-xs">Echo is just released! 🎉</p>
-          </HoverBorderGradient>
-          <h1 className="max-w-md scroll-m-20 text-left font-mono text-4xl tracking-tight">
-            Your Servers Speak, We Listen.
-          </h1>
-          <p className="text-muted-foreground max-w-md text-lg font-semibold text-balance">
-            Stop worrying about your servers. Get comprehensive uptime
-            monitoring without spending single penny.
-          </p>
-          <div className="flex items-center gap-2">
-            <Button size={"sm"}>Sign in</Button>
-
-            <Button variant={"link"}>Learn more</Button>
-          </div>
-          <p className="text-muted-foreground text-xs">
-            No credit card required
-          </p>
-        </div>
-
-        <div></div>
-      </main>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/login" element={<LoginPage />} />
+          </Routes>
+        </BrowserRouter>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
 
