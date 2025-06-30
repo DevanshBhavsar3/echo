@@ -15,8 +15,8 @@ var (
 
 type Storage struct {
 	Website interface {
-		CreateWebsite(ctx context.Context, w Website) (*string, error)
-		GetWebsiteById(ctx context.Context, id string) (*Website, error)
+		CreateWebsite(ctx context.Context, w Website, userId string) (*string, error)
+		GetWebsiteById(ctx context.Context, id string, userId string) (*Website, error)
 		GetWebsiteByFrequency(ctx context.Context, freq string) ([]Website, error)
 	}
 

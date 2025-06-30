@@ -14,13 +14,14 @@ type Website struct {
 	Frequency time.Duration `json:"frequency"`
 	Regions   []Region      `json:"regions"`
 	CreatedAt time.Time     `json:"created_at"`
+	CreatedBy string        `json:"created_by"`
 }
 
 type WebsiteStorage struct {
 	db *pgxpool.Pool
 }
 
-func (s *WebsiteStorage) CreateWebsite(ctx context.Context, w Website) (*string, error) {
+func (s *WebsiteStorage) CreateWebsite(ctx context.Context, w Website, userId string) (*string, error) {
 	tx, err := s.db.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return nil, err
@@ -28,14 +29,14 @@ func (s *WebsiteStorage) CreateWebsite(ctx context.Context, w Website) (*string,
 	defer tx.Rollback(ctx)
 
 	websiteQuery := `
-			INSERT INTO "website" (url, frequency)
-			VALUES ($1, $2)
+			INSERT INTO "website" (url, frequency, created_by)
+			VALUES ($1, $2, $3)
 			RETURNING id
 	`
 	queryCtx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	err = tx.QueryRow(queryCtx, websiteQuery, w.Url, w.Frequency).Scan(&w.ID)
+	err = tx.QueryRow(queryCtx, websiteQuery, w.Url, w.Frequency, userId).Scan(&w.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -63,13 +64,14 @@ func (s *WebsiteStorage) CreateWebsite(ctx context.Context, w Website) (*string,
 	return &w.ID, nil
 }
 
-func (s *WebsiteStorage) GetWebsiteById(ctx context.Context, id string) (*Website, error) {
+func (s *WebsiteStorage) GetWebsiteById(ctx context.Context, id string, userId string) (*Website, error) {
 	query := `
 		SELECT 
             w.id,
             w.url,
             w.frequency,
             w.created_at,
+            w.created_by,
             r.id,
             r.name
         FROM 
@@ -79,13 +81,13 @@ func (s *WebsiteStorage) GetWebsiteById(ctx context.Context, id string) (*Websit
         LEFT JOIN 
             region r ON wr.region_id = r.id
         WHERE 
-            w.id = $1
+            w.id = $1 AND w.created_by = $2
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	rows, err := s.db.Query(ctx, query, id)
+	rows, err := s.db.Query(ctx, query, id, userId)
 	if err != nil {
 		switch {
 		case err == pgx.ErrNoRows:
@@ -106,6 +108,7 @@ func (s *WebsiteStorage) GetWebsiteById(ctx context.Context, id string) (*Websit
 			&website.Url,
 			&website.Frequency,
 			&website.CreatedAt,
+			&website.CreatedBy,
 			&region.ID,
 			&region.Name,
 		)
@@ -130,6 +133,7 @@ func (s *WebsiteStorage) GetWebsiteByFrequency(ctx context.Context, freq string)
             w.url,
             w.frequency,
             w.created_at,
+			w.created_by,
             r.id,
             r.name
         FROM 
@@ -167,6 +171,7 @@ func (s *WebsiteStorage) GetWebsiteByFrequency(ctx context.Context, freq string)
 			&w.Url,
 			&w.Frequency,
 			&w.CreatedAt,
+			&w.CreatedBy,
 			&r.ID,
 			&r.Name,
 		)

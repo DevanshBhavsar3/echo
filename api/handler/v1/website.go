@@ -42,6 +42,8 @@ func (h *WebsiteHandler) AddWebsite(c *fiber.Ctx) error {
 		})
 	}
 
+	user := c.Locals("user").(*store.User)
+
 	freq, err := time.ParseDuration(body.Frequency)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
@@ -71,7 +73,7 @@ func (h *WebsiteHandler) AddWebsite(c *fiber.Ctx) error {
 		newWebsite.Regions = append(newWebsite.Regions, *region)
 	}
 
-	id, err := h.app.Store.Website.CreateWebsite(c.Context(), newWebsite)
+	id, err := h.app.Store.Website.CreateWebsite(c.Context(), newWebsite, user.ID)
 	if err != nil {
 		fmt.Println(err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
@@ -85,7 +87,10 @@ func (h *WebsiteHandler) AddWebsite(c *fiber.Ctx) error {
 }
 
 func (h *WebsiteHandler) GetWebsiteById(c *fiber.Ctx) error {
+	user := c.Locals("user").(*store.User)
 	websiteId := c.Params("id")
+
+	fmt.Println(user)
 
 	err := uuid.Validate(websiteId)
 	if err != nil {
@@ -94,7 +99,7 @@ func (h *WebsiteHandler) GetWebsiteById(c *fiber.Ctx) error {
 		})
 	}
 
-	website, err := h.app.Store.Website.GetWebsiteById(c.Context(), websiteId)
+	website, err := h.app.Store.Website.GetWebsiteById(c.Context(), websiteId, user.ID)
 	if err != nil {
 		if err == store.ErrNotFound {
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
