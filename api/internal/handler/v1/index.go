@@ -1,9 +1,10 @@
-package main
+package handler
 
 import (
-	"github.com/DevanshBhavsar3/echo-api/handler/v1"
-	"github.com/DevanshBhavsar3/echo-api/shared"
+	"github.com/DevanshBhavsar3/common/db/store"
+
 	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Handler struct {
@@ -18,8 +19,10 @@ type Handler struct {
 	}
 }
 
-func NewHandler(app *shared.Application) Handler {
+func NewHandler(db *pgxpool.Pool) Handler {
+	store := store.NewStorage(db)
+
 	return Handler{
-		Website: handler.NewWebsiteHandler(app),
-		Auth:    handler.NewAuthHandler(app)}
+		Website: NewWebsiteHandler(store.Website, store.Region),
+		Auth:    NewAuthHandler(store.User)}
 }

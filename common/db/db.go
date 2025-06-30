@@ -8,7 +8,6 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// Add connection pool
 func New(ctx context.Context, addr string) (*pgxpool.Pool, error) {
 	dbPool, err := pgxpool.New(ctx, addr)
 	if err != nil {
@@ -20,7 +19,7 @@ func New(ctx context.Context, addr string) (*pgxpool.Pool, error) {
 
 	if err := dbPool.Ping(ctx); err != nil {
 		return nil, err
-
 	}
+
 	return dbPool, nil
 }

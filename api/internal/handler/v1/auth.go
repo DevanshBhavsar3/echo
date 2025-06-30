@@ -5,19 +5,20 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/DevanshBhavsar3/common/store"
-	"github.com/DevanshBhavsar3/echo-api/shared"
+	"github.com/DevanshBhavsar3/common/db/store"
+	"github.com/DevanshBhavsar3/echo-api/pkg"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 )
 
 type AuthHandler struct {
-	app *shared.Application
+	userStorage store.UserStorage
 }
 
-func NewAuthHandler(app *shared.Application) *AuthHandler {
+func NewAuthHandler(userStorage store.UserStorage) *AuthHandler {
 	return &AuthHandler{
-		app: app,
+		userStorage,
 	}
 }
 
@@ -39,7 +40,7 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 		})
 	}
 
-	if err := h.app.Validator.Struct(body); err != nil {
+	if err := pkg.Validate.Struct(body); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid data.",
 		})
@@ -60,7 +61,7 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 		})
 	}
 
-	id, err := h.app.Store.User.Create(c.Context(), *user)
+	id, err := h.userStorage.Create(c.Context(), *user)
 	if err != nil {
 		if err == store.ErrDuplicateEmail {
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
@@ -82,14 +83,14 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	// Create token
 	claims := jwt.MapClaims{
 		"sub": id,
-		"exp": time.Now().Add(h.app.Config.Auth.Exp).Unix(),
+		"exp": time.Now().Add(pkg.Exp).Unix(),
 		"iat": time.Now().Unix(),
 		"nbf": time.Now().Unix(),
-		"iss": h.app.Config.Auth.Iss,
-		"aud": h.app.Config.Auth.Iss,
+		"iss": pkg.Iss,
+		"aud": pkg.Iss,
 	}
 
-	token, err := h.app.Authenticator.GenerateJWT(claims)
+	token, err := pkg.GenerateJWT(claims)
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Cannot create token.",
@@ -99,7 +100,7 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	cookie := fiber.Cookie{
 		Name:     "token",
 		Value:    token,
-		Expires:  time.Now().Add(h.app.Config.Auth.Exp),
+		Expires:  time.Now().Add(pkg.Exp),
 		Secure:   true,
 		SameSite: "none",
 	}
@@ -124,13 +125,13 @@ func (h *AuthHandler) SignIn(c *fiber.Ctx) error {
 		})
 	}
 
-	if err := h.app.Validator.Struct(body); err != nil {
+	if err := pkg.Validate.Struct(body); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid data.",
 		})
 	}
 
-	user, err := h.app.Store.User.GetByEmail(c.Context(), body.Email)
+	user, err := h.userStorage.GetByEmail(c.Context(), body.Email)
 	if err != nil {
 		switch err {
 		case store.ErrNotFound:
@@ -154,14 +155,14 @@ func (h *AuthHandler) SignIn(c *fiber.Ctx) error {
 	// Create token
 	claims := jwt.MapClaims{
 		"sub": user.ID,
-		"exp": time.Now().Add(h.app.Config.Auth.Exp).Unix(),
+		"exp": time.Now().Add(pkg.Exp).Unix(),
 		"iat": time.Now().Unix(),
 		"nbf": time.Now().Unix(),
-		"iss": h.app.Config.Auth.Iss,
-		"aud": h.app.Config.Auth.Iss,
+		"iss": pkg.Iss,
+		"aud": pkg.Iss,
 	}
 
-	token, err := h.app.Authenticator.GenerateJWT(claims)
+	token, err := pkg.GenerateJWT(claims)
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Cannot create token.",
@@ -171,7 +172,7 @@ func (h *AuthHandler) SignIn(c *fiber.Ctx) error {
 	cookie := fiber.Cookie{
 		Name:    "token",
 		Value:   token,
-		Expires: time.Now().Add(h.app.Config.Auth.Exp),
+		Expires: time.Now().Add(pkg.Exp),
 	}
 	c.Cookie(&cookie)
 

@@ -44,11 +44,11 @@ func (p *password) Compare(text string) error {
 	return bcrypt.CompareHashAndPassword(p.hash, []byte(text))
 }
 
-type UserStore struct {
+type UserStorage struct {
 	db *pgxpool.Pool
 }
 
-func (s *UserStore) Create(ctx context.Context, u User) (*string, error) {
+func (s *UserStorage) Create(ctx context.Context, u User) (*string, error) {
 	query := `
 		INSERT INTO "user" (first_name, last_name, email, phone_number, avatar, password)
 		VALUES ($1, $2, $3, $4, $5, $6)
@@ -75,7 +75,7 @@ func (s *UserStore) Create(ctx context.Context, u User) (*string, error) {
 	return &u.ID, nil
 }
 
-func (s *UserStore) GetByEmail(ctx context.Context, email string) (*User, error) {
+func (s *UserStorage) GetByEmail(ctx context.Context, email string) (*User, error) {
 	query := `
 		SELECT id, first_name, last_name, email, phone_number, avatar, password, created_at
 		FROM "user"
@@ -108,7 +108,7 @@ func (s *UserStore) GetByEmail(ctx context.Context, email string) (*User, error)
 	return user, nil
 }
 
-func (s *UserStore) GetById(ctx context.Context, id string) (*User, error) {
+func (s *UserStorage) GetById(ctx context.Context, id string) (*User, error) {
 	query := `
 		SELECT id, first_name, last_name, email, phone_number, avatar, password, created_at
 		FROM "user"

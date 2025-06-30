@@ -5,19 +5,22 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/DevanshBhavsar3/common/store"
-	"github.com/DevanshBhavsar3/echo-api/shared"
+	"github.com/DevanshBhavsar3/common/db/store"
+	"github.com/DevanshBhavsar3/echo-api/pkg"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
 type WebsiteHandler struct {
-	app *shared.Application
+	websiteStorage store.WebsiteStorage
+	regionStorage  store.RegionStorage
 }
 
-func NewWebsiteHandler(app *shared.Application) *WebsiteHandler {
+func NewWebsiteHandler(websiteStorage store.WebsiteStorage, regionStorage store.RegionStorage) *WebsiteHandler {
 	return &WebsiteHandler{
-		app: app,
+		websiteStorage,
+		regionStorage,
 	}
 }
 
@@ -36,13 +39,13 @@ func (h *WebsiteHandler) AddWebsite(c *fiber.Ctx) error {
 		})
 	}
 
-	if err := h.app.Validator.Struct(body); err != nil {
+	if err := pkg.Validate.Struct(body); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
 			"error": "invalid body",
 		})
 	}
 
-	user := c.Locals("user").(*store.User)
+	userID := c.Locals("userID").(string)
 
 	freq, err := time.ParseDuration(body.Frequency)
 	if err != nil {
@@ -56,7 +59,7 @@ func (h *WebsiteHandler) AddWebsite(c *fiber.Ctx) error {
 		Frequency: freq,
 	}
 	for _, r := range body.Regions {
-		region, err := h.app.Store.Region.GetRegionByName(c.Context(), r)
+		region, err := h.regionStorage.GetRegionByName(c.Context(), r)
 		if err != nil {
 			switch {
 			case err == store.ErrNotFound:
@@ -73,7 +76,7 @@ func (h *WebsiteHandler) AddWebsite(c *fiber.Ctx) error {
 		newWebsite.Regions = append(newWebsite.Regions, *region)
 	}
 
-	id, err := h.app.Store.Website.CreateWebsite(c.Context(), newWebsite, user.ID)
+	id, err := h.websiteStorage.CreateWebsite(c.Context(), newWebsite, userID)
 	if err != nil {
 		fmt.Println(err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
@@ -87,10 +90,8 @@ func (h *WebsiteHandler) AddWebsite(c *fiber.Ctx) error {
 }
 
 func (h *WebsiteHandler) GetWebsiteById(c *fiber.Ctx) error {
-	user := c.Locals("user").(*store.User)
+	userID := c.Locals("userID").(string)
 	websiteId := c.Params("id")
-
-	fmt.Println(user)
 
 	err := uuid.Validate(websiteId)
 	if err != nil {
@@ -99,7 +100,7 @@ func (h *WebsiteHandler) GetWebsiteById(c *fiber.Ctx) error {
 		})
 	}
 
-	website, err := h.app.Store.Website.GetWebsiteById(c.Context(), websiteId, user.ID)
+	website, err := h.websiteStorage.GetWebsiteById(c.Context(), websiteId, userID)
 	if err != nil {
 		if err == store.ErrNotFound {
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
