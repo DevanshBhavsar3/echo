@@ -16,6 +16,7 @@ type Handler struct {
 		Register(c *fiber.Ctx) error
 		SignIn(c *fiber.Ctx) error
 		Logout(c *fiber.Ctx) error
+		GetUser(c *fiber.Ctx) error
 	}
 }
 

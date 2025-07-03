@@ -6,9 +6,9 @@ import (
 	"net/http"
 
 	"github.com/DevanshBhavsar3/common/db"
-	"github.com/DevanshBhavsar3/echo-api/config"
-	"github.com/DevanshBhavsar3/echo-api/internal/handler/v1"
-	"github.com/DevanshBhavsar3/echo-api/internal/routes"
+	"github.com/DevanshBhavsar3/echo/api/config"
+	"github.com/DevanshBhavsar3/echo/api/internal/handler/v1"
+	"github.com/DevanshBhavsar3/echo/api/internal/routes"
 
 	"github.com/gofiber/fiber/v2"
 	_ "github.com/joho/godotenv/autoload"
@@ -22,16 +22,20 @@ func main() {
 	DATABASE_URL := config.GetEnv("DATABASE_URL", "postgres://postgres:secret@localhost:5432?sslmode=disable")
 
 	// Connect to database
-	db, err := db.New(ctx, DATABASE_URL)
+	database, err := db.New(ctx, DATABASE_URL)
 	if err != nil {
-		log.Fatal("failed connecting to postgres")
+		log.Fatalf("failed connecting to postgres:\n%v", err)
 	}
-	defer db.Close()
+	defer database.Close()
+
+	if err = db.Migrate(DATABASE_URL); err != nil {
+		log.Fatalf("failed migrating database:\n%v", err)
+	}
 
 	app := fiber.New()
 
 	// Create route handlers
-	handlers := handler.NewHandler(db)
+	handlers := handler.NewHandler(database)
 
 	// Setup routes
 	routes.SetupRoutes(app, handlers)
@@ -40,5 +44,5 @@ func main() {
 		return c.Status(http.StatusOK).SendString("I'm up.")
 	})
 
-	app.Listen(PORT)
+	log.Fatal(app.Listen(PORT))
 }

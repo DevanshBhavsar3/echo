@@ -1,12 +1,13 @@
 package handler
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/DevanshBhavsar3/common/db/store"
-	"github.com/DevanshBhavsar3/echo-api/pkg"
+	"github.com/DevanshBhavsar3/echo/api/pkg"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -62,7 +63,7 @@ func (h *WebsiteHandler) AddWebsite(c *fiber.Ctx) error {
 		region, err := h.regionStorage.GetRegionByName(c.Context(), r)
 		if err != nil {
 			switch {
-			case err == store.ErrNotFound:
+			case errors.Is(err, store.ErrNotFound):
 				return c.Status(http.StatusBadRequest).JSON(fiber.Map{
 					"error": "invalid region provided",
 				})
@@ -102,15 +103,17 @@ func (h *WebsiteHandler) GetWebsiteById(c *fiber.Ctx) error {
 
 	website, err := h.websiteStorage.GetWebsiteById(c.Context(), websiteId, userID)
 	if err != nil {
-		if err == store.ErrNotFound {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
 				"error": "website not found.",
 			})
+		default:
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"error": "error getting website.",
+			})
 		}
 
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": "error getting website.",
-		})
 	}
 
 	return c.Status(http.StatusOK).JSON(website)

@@ -12,15 +12,13 @@ import (
 )
 
 type User struct {
-	ID          string    `json:"id"`
-	FirstName   string    `json:"first_name"`
-	LastName    string    `json:"last_name"`
-	Email       string    `json:"email"`
-	PhoneNumber string    `json:"phone_number"`
-	Avatar      string    `json:"avatar"`
-	Password    password  `json:"password"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	Email     string    `json:"email"`
+	Avatar    string    `json:"avatar"`
+	Password  password  `json:"password"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type password struct {
@@ -48,17 +46,19 @@ type UserStorage struct {
 	db *pgxpool.Pool
 }
 
-func (s *UserStorage) Create(ctx context.Context, u User) (*string, error) {
+func (s *UserStorage) Create(ctx context.Context, u User) (*User, error) {
 	query := `
-		INSERT INTO "user" (first_name, last_name, email, phone_number, avatar, password)
-		VALUES ($1, $2, $3, $4, $5, $6)
-		RETURNING id
+		INSERT INTO "user" (name, email, avatar, password)
+		VALUES ($1, $2, $3, $4)
+		RETURNING id, name, email, avatar, created_at, updated_at;
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	err := s.db.QueryRow(ctx, query, u.FirstName, u.LastName, u.Email, u.PhoneNumber, u.Avatar, u.Password.hash).Scan(&u.ID)
+	var user User
+
+	err := s.db.QueryRow(ctx, query, u.Name, u.Email, u.Avatar, u.Password.hash).Scan(&user.ID, &user.Name, &user.Email, &user.Avatar, &user.CreatedAt, &user.UpdatedAt)
 
 	if err != nil {
 		fmt.Println(err)
@@ -72,12 +72,12 @@ func (s *UserStorage) Create(ctx context.Context, u User) (*string, error) {
 		}
 	}
 
-	return &u.ID, nil
+	return &user, nil
 }
 
 func (s *UserStorage) GetByEmail(ctx context.Context, email string) (*User, error) {
 	query := `
-		SELECT id, first_name, last_name, email, phone_number, avatar, password, created_at
+		SELECT id, name, email, avatar, password, created_at, updated_at
 		FROM "user"
 		WHERE email = $1
 	`
@@ -88,17 +88,16 @@ func (s *UserStorage) GetByEmail(ctx context.Context, email string) (*User, erro
 	user := &User{}
 	err := s.db.QueryRow(ctx, query, email).Scan(
 		&user.ID,
-		&user.FirstName,
-		&user.LastName,
+		&user.Name,
 		&user.Email,
-		&user.PhoneNumber,
 		&user.Avatar,
 		&user.Password.hash,
 		&user.CreatedAt,
+		&user.UpdatedAt,
 	)
 	if err != nil {
-		switch err {
-		case pgx.ErrNoRows:
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
 			return nil, ErrNotFound
 		default:
 			return nil, err
@@ -110,7 +109,7 @@ func (s *UserStorage) GetByEmail(ctx context.Context, email string) (*User, erro
 
 func (s *UserStorage) GetById(ctx context.Context, id string) (*User, error) {
 	query := `
-		SELECT id, first_name, last_name, email, phone_number, avatar, password, created_at
+		SELECT id, name, email, avatar, password, created_at, updated_at
 		FROM "user"
 		WHERE id = $1
 	`
@@ -121,17 +120,16 @@ func (s *UserStorage) GetById(ctx context.Context, id string) (*User, error) {
 	user := &User{}
 	err := s.db.QueryRow(ctx, query, id).Scan(
 		&user.ID,
-		&user.FirstName,
-		&user.LastName,
+		&user.Name,
 		&user.Email,
-		&user.PhoneNumber,
 		&user.Avatar,
 		&user.Password.hash,
 		&user.CreatedAt,
+		&user.UpdatedAt,
 	)
 	if err != nil {
-		switch err {
-		case pgx.ErrNoRows:
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
 			return nil, ErrNotFound
 		default:
 			return nil, err

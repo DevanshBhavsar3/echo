@@ -2,8 +2,11 @@ import { Github } from "lucide-react";
 import { ModeToggle } from "./mode-toggle";
 import { Button } from "./ui/button";
 import { NavLink } from "react-router-dom";
+import useUser from "@/api/query/user.ts";
 
 export function Navbar() {
+  const { user } = useUser()
+
   return (
     <nav className="fixed top-0 left-1/2 py-4 px-2 flex flex-col md:flex-row w-full max-w-7xl -translate-x-1/2 items-center justify-between gap-6">
       <div className="flex w-full items-center gap-3">
@@ -25,16 +28,25 @@ export function Navbar() {
         </Button>
       </a>
       <ModeToggle />
-      <div className="flex items-center gap-3">
-        <NavLink to={"/login"}>
-          <Button size={"sm"}>Log in</Button>
-        </NavLink>
-        <NavLink to={"/signup"}>
-          <Button size={"sm"} variant={"outline"}>
-            Sign up
-          </Button>
-        </NavLink>
-      </div>
+
+      {
+        user ? (
+          <NavLink to={"/dashboard"}>
+            <Button variant={"outline"}>Dashboard</Button>
+          </NavLink>
+        ) : (
+          <div className="flex items-center gap-3">
+            <NavLink to={"/login"}>
+              <Button size={"sm"}>Log in</Button>
+            </NavLink>
+            <NavLink to={"/signup"}>
+              <Button size={"sm"} variant={"outline"}>
+                Sign up
+              </Button>
+            </NavLink>
+          </div>
+        )
+      }
     </nav >
   );
 }

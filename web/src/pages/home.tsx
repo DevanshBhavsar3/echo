@@ -1,9 +1,12 @@
+import useUser from "@/api/query/user";
 import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { HoverBorderGradient } from "@/components/ui/hover-border-gradient";
 import { NavLink } from "react-router-dom";
 
 export default function HomePage() {
+  const { user } = useUser()
+
   return (
     <div className="flex flex-col justify-center items-center px-6 md:px-10 relative">
       <Navbar />
@@ -26,19 +29,27 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid gap-3">
-            <div className="grid grid-cols-2 gap-3 w-fit items-center">
-              <NavLink to={"/signup"}>
-                <Button size={"sm"}>Sign up</Button>
+          {
+            user ? (
+              <NavLink to={"/dashboard"}>
+                <Button size={"sm"}>Go to Dashboard</Button>
               </NavLink>
-              <NavLink to={"/learn"} className="hover:underline underline-offset-4">
-                Learn more
-              </NavLink>
-            </div>
-            <span className="text-muted-foreground text-sm">
-              No credit card required
-            </span>
-          </div>
+            ) : (
+              <div className="grid gap-3">
+                <div className="grid grid-cols-2 gap-3 w-fit items-center">
+                  <NavLink to={"/signup"}>
+                    <Button size={"sm"}>Sign up</Button>
+                  </NavLink>
+                  <NavLink to={"/learn"} className="hover:underline underline-offset-4">
+                    Learn more
+                  </NavLink>
+                </div>
+                <span className="text-muted-foreground text-sm">
+                  No credit card required
+                </span>
+              </div>
+            )
+          }
         </div>
       </main>
 

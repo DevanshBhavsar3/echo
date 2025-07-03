@@ -2,8 +2,12 @@ package db
 
 import (
 	"context"
+	"errors"
 	"time"
 
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/lib/pq"
 )
@@ -22,4 +26,17 @@ func New(ctx context.Context, addr string) (*pgxpool.Pool, error) {
 	}
 
 	return dbPool, nil
+}
+
+func Migrate(addr string) error {
+	m, err := migrate.New("file://../common/db/migrations", addr)
+	if err != nil {
+		return err
+	}
+
+	if err = m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		return err
+	}
+
+	return nil
 }

@@ -1,12 +1,12 @@
 package handler
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 	"time"
 
 	"github.com/DevanshBhavsar3/common/db/store"
-	"github.com/DevanshBhavsar3/echo-api/pkg"
+	"github.com/DevanshBhavsar3/echo/api/pkg"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
@@ -23,12 +23,10 @@ func NewAuthHandler(userStorage store.UserStorage) *AuthHandler {
 }
 
 type RegisterUserBody struct {
-	FirstName   string `json:"first_name" validate:"min=2,max=10"`
-	LastName    string `json:"last_name" validate:"min=2,max=10"`
-	Email       string `json:"email" validate:"email,max=255"`
-	PhoneNumber string `json:"phone_number" validate:"len=10"`
-	Avatar      string `json:"avatar" validate:"url"`
-	Password    string `json:"password" validate:"min=3,max=72"`
+	Name     string `json:"name" validate:"min=3,max=30"`
+	Email    string `json:"email" validate:"email,max=255"`
+	Avatar   string `json:"avatar" validate:"url"`
+	Password string `json:"password" validate:"min=3,max=72"`
 }
 
 func (h *AuthHandler) Register(c *fiber.Ctx) error {
@@ -47,11 +45,9 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	}
 
 	user := &store.User{
-		FirstName:   body.FirstName,
-		LastName:    body.LastName,
-		Email:       body.Email,
-		PhoneNumber: body.PhoneNumber,
-		Avatar:      body.Avatar,
+		Name:   body.Name,
+		Email:  body.Email,
+		Avatar: body.Avatar,
 	}
 
 	// hash the user password
@@ -61,28 +57,27 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 		})
 	}
 
-	id, err := h.userStorage.Create(c.Context(), *user)
+	newUser, err := h.userStorage.Create(c.Context(), *user)
 	if err != nil {
-		if err == store.ErrDuplicateEmail {
+		switch {
+		case errors.Is(err, store.ErrDuplicateEmail):
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
 				"error": "User already exists.",
 			})
-		}
-
-		if err == store.ErrDuplicatePhoneNumber {
+		case errors.Is(err, store.ErrDuplicatePhoneNumber):
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
 				"error": "Phone number already used.",
 			})
+		default:
+			c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Error creating user.",
+			})
 		}
-
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Error creating user.",
-		})
 	}
 
 	// Create token
 	claims := jwt.MapClaims{
-		"sub": id,
+		"sub": newUser.ID,
 		"exp": time.Now().Add(pkg.Exp).Unix(),
 		"iat": time.Now().Unix(),
 		"nbf": time.Now().Unix(),
@@ -106,9 +101,7 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	}
 	c.Cookie(&cookie)
 
-	return c.Status(http.StatusCreated).JSON(fiber.Map{
-		"msg": "Registered succcessfully.",
-	})
+	return c.Status(http.StatusCreated).JSON(newUser)
 }
 
 type CreateTokenBody struct {
@@ -133,13 +126,12 @@ func (h *AuthHandler) SignIn(c *fiber.Ctx) error {
 
 	user, err := h.userStorage.GetByEmail(c.Context(), body.Email)
 	if err != nil {
-		switch err {
-		case store.ErrNotFound:
+		switch {
+		case errors.Is(err, store.ErrNotFound):
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
 				"error": "User does not exists.",
 			})
 		default:
-			fmt.Println(err)
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Failed to sign in.",
 			})
@@ -176,9 +168,7 @@ func (h *AuthHandler) SignIn(c *fiber.Ctx) error {
 	}
 	c.Cookie(&cookie)
 
-	return c.Status(http.StatusOK).JSON(fiber.Map{
-		"msg": "Signed in succcessfully.",
-	})
+	return c.Status(http.StatusOK).JSON(user)
 }
 
 func (h *AuthHandler) Logout(c *fiber.Ctx) error {
@@ -189,4 +179,17 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 	return c.Status(http.StatusOK).JSON(fiber.Map{
 		"msg": "Signed out successfully.",
 	})
+}
+
+func (h *AuthHandler) GetUser(c *fiber.Ctx) error {
+	userId := c.Locals("userID").(string)
+
+	user, err := h.userStorage.GetById(c.Context(), userId)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Can't get user data.",
+		})
+	}
+
+	return c.Status(http.StatusOK).JSON(user)
 }

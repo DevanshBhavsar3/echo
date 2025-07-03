@@ -1,4 +1,4 @@
-module github.com/DevanshBhavsar3/echo-api
+module github.com/DevanshBhavsar3/echo/api
 
 go 1.24.4
 

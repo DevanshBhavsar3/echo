@@ -3,50 +3,39 @@ import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { useForm, useStore } from "@tanstack/react-form";
-import { useSignup } from "@/api/signup";
+import useSignup from "@/api/mutations/signup";
 import { z } from "zod";
 import type { HTMLInputTypeAttribute } from "react";
 import { Loader2Icon } from "lucide-react";
-import type { AxiosError } from "axios";
 import GoogleIcon from "./icons/Google";
 import GithubIcon from "./icons/Github";
 
 type Field = {
-  name: "first_name" | "last_name" | "email" | "phone_number" | "password";
+  name: "name" | "email" | "password";
   type: HTMLInputTypeAttribute;
   placeholder: string;
   display: string;
 };
 
 export default function SignupForm() {
-  const { mutate, isPending, isError, error
-  } = useSignup()
+  const { mutate, isPending } = useSignup();
 
   const form = useForm({
     defaultValues: {
-      first_name: "",
-      last_name: "",
+      name: "",
       email: "",
       password: "",
-      phone_number: "",
     },
     validators: {
       onChange: z.object({
-        first_name: z
+        name: z
           .string()
-          .min(2, "First name must have atleast 2 letters.")
-          .max(10, "First name should have 10 letters at max."),
-        last_name: z
-          .string()
-          .min(2, "Last name must have atleast 2 letters.")
-          .max(10, "First name should have 10 letters at max."),
+          .min(3, "Name must have at least 3 letters.")
+          .max(30, "Name should have 30 letters at max."),
         email: z.string().email("Please provide valid email."),
-        phone_number: z
-          .string()
-          .length(10, "Please provide valid phone number."),
         password: z
           .string()
-          .min(3, "Password must have atleast 3 letters.")
+          .min(3, "Password must have at least 3 letters.")
           .max(72, "Password should have 72 letters at max."),
       }),
     },
@@ -65,28 +54,16 @@ export default function SignupForm() {
 
   const fields: Field[] = [
     {
-      name: "first_name",
+      name: "name",
       type: "text",
-      placeholder: "John",
-      display: "First Name",
-    },
-    {
-      name: "last_name",
-      type: "text",
-      placeholder: "Doe",
-      display: "Last Name",
+      placeholder: "John Doe",
+      display: "Full Name",
     },
     {
       name: "email",
       type: "email",
       placeholder: "me@example.com",
       display: "Email",
-    },
-    {
-      name: "phone_number",
-      type: "tel",
-      placeholder: "",
-      display: "Phone Number",
     },
     {
       name: "password",
@@ -103,7 +80,8 @@ export default function SignupForm() {
         e.preventDefault();
         e.stopPropagation();
         form.handleSubmit();
-      }}>
+      }}
+    >
       <div className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-2xl font-bold">Welcome to Echo</h1>
         <p className="text-muted-foreground text-sm text-balance">
@@ -131,16 +109,10 @@ export default function SignupForm() {
           </form.Field>
         ))}
 
-        {formErrorMap.onChange ? (
+        {formErrorMap.onChange && (
           <span className="text-muted-foreground text-sm">
             {Object.values(formErrorMap.onChange)[0][0].message}
           </span>
-        ) : (
-          isError && (
-            <span className="text-sm text-red-400">
-              {((error as AxiosError).response?.data as { error: string }).error || "An unexpected error occurred. Please try again."}
-            </span>
-          )
         )}
 
         {isPending ? (

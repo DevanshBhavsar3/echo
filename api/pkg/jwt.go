@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/DevanshBhavsar3/echo-api/config"
+	"github.com/DevanshBhavsar3/echo/api/config"
 
 	"github.com/golang-jwt/jwt/v5"
 )

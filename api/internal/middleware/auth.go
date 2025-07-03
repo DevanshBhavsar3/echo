@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/DevanshBhavsar3/echo-api/pkg"
+	"github.com/DevanshBhavsar3/echo/api/pkg"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"

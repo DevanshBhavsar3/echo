@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -90,7 +91,7 @@ func (s *WebsiteStorage) GetWebsiteById(ctx context.Context, id string, userId s
 	rows, err := s.db.Query(ctx, query, id, userId)
 	if err != nil {
 		switch {
-		case err == pgx.ErrNoRows:
+		case errors.Is(err, pgx.ErrNoRows):
 			return nil, ErrNotFound
 		default:
 			return nil, err
@@ -152,7 +153,7 @@ func (s *WebsiteStorage) GetWebsiteByFrequency(ctx context.Context, freq string)
 	rows, err := s.db.Query(ctx, query, freq)
 	if err != nil {
 		switch {
-		case err == pgx.ErrNoRows:
+		case errors.Is(err, pgx.ErrNoRows):
 			return nil, ErrNotFound
 		default:
 			return nil, err
