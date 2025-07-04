@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"net/http"
+
 	"github.com/DevanshBhavsar3/echo/api/config"
 	"github.com/DevanshBhavsar3/echo/api/internal/handler/v1"
 	"github.com/DevanshBhavsar3/echo/api/internal/middleware"
@@ -28,6 +30,11 @@ func SetupRoutes(app *fiber.App, handlers handler.Handler) {
 	app.Use(logger.New())
 	app.Use(cors.New(corsConfig))
 
+	// Health Route
+	app.Get("/health", func(c *fiber.Ctx) error {
+		return c.Status(http.StatusOK).SendString("I'm up.")
+	})
+
 	// v1 Routes
 	v1Router := app.Group("/api/v1")
 
@@ -36,6 +43,7 @@ func SetupRoutes(app *fiber.App, handlers handler.Handler) {
 	authRouter.Post("/register", handlers.Auth.Register)
 	authRouter.Post("/signin", handlers.Auth.SignIn)
 	authRouter.Get("/user", middleware.AuthMiddleware, handlers.Auth.GetUser)
+	authRouter.Post("/logout", handlers.Auth.Logout)
 
 	// Website routes
 	websiteRouter := v1Router.Group("/website", middleware.AuthMiddleware)

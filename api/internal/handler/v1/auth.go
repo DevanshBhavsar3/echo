@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/DevanshBhavsar3/common/db/store"
 	"github.com/DevanshBhavsar3/echo/api/pkg"
+	"github.com/DevanshBhavsar3/echo/db/store"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"

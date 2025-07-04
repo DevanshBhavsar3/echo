@@ -2,12 +2,11 @@ package handler
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"time"
 
-	"github.com/DevanshBhavsar3/common/db/store"
 	"github.com/DevanshBhavsar3/echo/api/pkg"
+	"github.com/DevanshBhavsar3/echo/db/store"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -79,7 +78,6 @@ func (h *WebsiteHandler) AddWebsite(c *fiber.Ctx) error {
 
 	id, err := h.websiteStorage.CreateWebsite(c.Context(), newWebsite, userID)
 	if err != nil {
-		fmt.Println(err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": "error creating website.",
 		})

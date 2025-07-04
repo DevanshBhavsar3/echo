@@ -3,7 +3,6 @@ package store
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -61,7 +60,6 @@ func (s *UserStorage) Create(ctx context.Context, u User) (*User, error) {
 	err := s.db.QueryRow(ctx, query, u.Name, u.Email, u.Avatar, u.Password.hash).Scan(&user.ID, &user.Name, &user.Email, &user.Avatar, &user.CreatedAt, &user.UpdatedAt)
 
 	if err != nil {
-		fmt.Println(err)
 		switch {
 		case err.Error() == `ERROR: duplicate key value violates unique constraint "user_email_key" (SQLSTATE 23505)`:
 			return nil, ErrDuplicateEmail

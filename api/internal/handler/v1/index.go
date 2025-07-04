@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"github.com/DevanshBhavsar3/common/db/store"
+	"github.com/DevanshBhavsar3/echo/db/store"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgxpool"

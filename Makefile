@@ -1,5 +1,5 @@
 include .env
-MIGRAION_PATH = ../common/db/migrations
+MIGRAION_PATH = ./common/db/migrations
 
 test:
 	@go test $(shell go list -f '{{.Dir}}/...' -m | xargs)
