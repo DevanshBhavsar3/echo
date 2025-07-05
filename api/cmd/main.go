@@ -23,10 +23,7 @@ func main() {
 	}
 
 	// Connect to database
-	database, err := db.New(ctx)
-	if err != nil {
-		log.Fatalf("failed connecting to postgres:\n%v", err)
-	}
+	database := db.New(ctx)
 	defer database.Close()
 
 	app := fiber.New()

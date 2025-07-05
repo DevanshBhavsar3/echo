@@ -180,9 +180,14 @@ func (s *WebsiteStorage) GetWebsiteByFrequency(ctx context.Context, freq string)
 			return nil, err
 		}
 
-		w.Regions = append(w.Regions, r)
+		lastWebsite := websites[len(websites)-1]
 
-		websites = append(websites, w)
+		if lastWebsite.ID == w.ID {
+			lastWebsite.Regions = append(lastWebsite.Regions, r)
+		} else {
+			w.Regions = append(w.Regions, r)
+			websites = append(websites, w)
+		}
 	}
 
 	return websites, nil

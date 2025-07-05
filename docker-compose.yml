@@ -2,27 +2,55 @@ services:
   db:
     image: timescale/timescaledb-ha:pg17
     environment:
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_PASSWORD=secret
     ports:
       - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       retries: 5
-      start_period: 30s
-      timeout: 10s
+      timeout: 5s
+
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+
+  migrate:
+    image: migrate/migrate
+    volumes:
+      - ./common/db/migrations/:/migrations
+    command:
+      [ "-path", "/migrations", "-database", "postgres://postgres:secret@db:5432/postgres?sslmode=disable", "up" ]
+    depends_on:
+     db:
+      condition: service_healthy
 
   api:
     build:
       context: .
       dockerfile: ./infra/Docker/api/Dockerfile
     environment:
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=postgres://postgres:secret@db:5432/postgres?sslmode=disable
     ports:
       - "3000:3000"
     depends_on:
-      db:
-        condition: service_healthy
-        restart: true
+      migrate:
+        condition: service_completed_successfully
     volumes:
       - .env:/app/.env
+
+  publisher:
+    build:
+      context: .
+      dockerfile: ./infra/Docker/publisher/Dockerfile
+    environment:
+      - DATABASE_URL=postgres://postgres:secret@db:5432/postgres?sslmode=disable
+      - REDIS_URL=redis:6379
+    volumes:
+      - .env:/app/.env
+    depends_on:
+      redis:
+        condition: service_started
+      migrate:
+        condition: service_completed_successfully
