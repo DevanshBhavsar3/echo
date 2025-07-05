@@ -29,7 +29,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: ./infra/Docker/api/Dockerfile
+      dockerfile: ./infra/Docker/api/Dockerfile.dev
     environment:
       - DATABASE_URL=postgres://postgres:secret@db:5432/postgres?sslmode=disable
     ports:
@@ -38,7 +38,15 @@ services:
       migrate:
         condition: service_completed_successfully
     volumes:
-      - .env:/app/.env
+      - .env:/app/api/.env
+    develop:
+      watch:
+        - action: sync
+          path: ./api
+          target: /app/api
+          ignore:
+            - bin
+            - tmp
 
   publisher:
     build:

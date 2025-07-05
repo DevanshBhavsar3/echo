@@ -1,0 +1,19 @@
+FROM golang:1.24
+
+WORKDIR /app
+
+RUN go install github.com/air-verse/air@latest
+
+COPY go.* ./
+COPY ./api/go.* ./api/
+COPY ./common ./common
+
+RUN cd ./api && go mod tidy
+
+COPY . .
+
+EXPOSE 3000
+
+WORKDIR /app/api
+
+CMD ["air", "-c", ".air.toml"]
