@@ -4,4 +4,6 @@ use (
 	./api
 	./common/db
 	./publisher
+	./worker
+	./db-worker
 )

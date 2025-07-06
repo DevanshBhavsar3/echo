@@ -11,8 +11,8 @@ type Config struct {
 func LoadEnv() Config {
 	return Config{
 		REDIS_URL: GetEnv("REDIS_URL", "localhost:6379"),
-		REGION:    GetEnv("REGION", ""),
-		WORKER_ID: GetEnv("REGION", "1"),
+		REGION:    GetEnv("REGION", "UNKNOWN"),
+		WORKER_ID: GetEnv("WORKER_ID", "1"),
 	}
 }
 

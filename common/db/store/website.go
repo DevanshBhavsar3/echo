@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -16,6 +17,10 @@ type Website struct {
 	Regions   []Region      `json:"regions"`
 	CreatedAt time.Time     `json:"created_at"`
 	CreatedBy string        `json:"created_by"`
+}
+
+func (w Website) MarshalBinary() ([]byte, error) {
+	return json.Marshal(w)
 }
 
 type WebsiteStorage struct {
@@ -180,14 +185,17 @@ func (s *WebsiteStorage) GetWebsiteByFrequency(ctx context.Context, freq string)
 			return nil, err
 		}
 
-		lastWebsite := websites[len(websites)-1]
+		if len(websites) > 0 {
+			lastWebsite := &websites[len(websites)-1]
 
-		if lastWebsite.ID == w.ID {
-			lastWebsite.Regions = append(lastWebsite.Regions, r)
-		} else {
-			w.Regions = append(w.Regions, r)
-			websites = append(websites, w)
+			if lastWebsite.ID == w.ID {
+				lastWebsite.Regions = append(lastWebsite.Regions, r)
+				continue
+			}
 		}
+
+		w.Regions = append(w.Regions, r)
+		websites = append(websites, w)
 	}
 
 	return websites, nil

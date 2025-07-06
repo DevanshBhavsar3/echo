@@ -1,13 +1,12 @@
-package main
+package pkg
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptrace"
 	"time"
 
-	"github.com/DevanshBhavsar3/common/store"
+	"github.com/DevanshBhavsar3/echo/db/store"
 )
 
 type Analytics struct {
@@ -27,22 +26,11 @@ func (a *Analytics) Ping() {
 	req, _ := http.NewRequest("HEAD", a.Url, nil)
 	req.Header.Set("User-Agent", "Echo-Monitor/1.0")
 
-	var start, connect time.Time
-
-	trace := &httptrace.ClientTrace{
-		ConnectStart: func(network, addr string) {
-			connect = time.Now()
-		},
-		ConnectDone: func(network, addr string, err error) {
-			time.Since(connect)
-		},
-		GotFirstResponseByte: func() {
-			fmt.Printf("Time from start to first byte: %v\n", time.Since(start))
-		},
-	}
-
+	trace := &httptrace.ClientTrace{}
 	req = req.WithContext(httptrace.WithClientTrace(req.Context(), trace))
-	start = time.Now()
+
+	start := time.Now()
+
 	res, err := http.DefaultTransport.RoundTrip(req)
 	if err != nil {
 		log.Fatal(err)
