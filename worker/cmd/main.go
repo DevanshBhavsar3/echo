@@ -8,38 +8,36 @@ import (
 	"strings"
 	"time"
 
-	"github.com/DevanshBhavsar3/echo/db"
-	"github.com/DevanshBhavsar3/echo/db/store"
-	"github.com/DevanshBhavsar3/echo/worker/config"
+	"github.com/DevanshBhavsar3/echo/common/config"
+	"github.com/DevanshBhavsar3/echo/common/db"
+	"github.com/DevanshBhavsar3/echo/common/db/store"
 	"github.com/DevanshBhavsar3/echo/worker/pkg"
 
-	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
 )
 
 var ctx = context.Background()
 var stream = "echo:websites"
 
-func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("error loading publisher .env:\n%v", err)
-	}
+var (
+	REGION = config.Get("REGION")
+)
 
-	cfg := config.LoadEnv()
+func main() {
+	fmt.Println(REGION, "worker started.")
 
 	database := db.New(ctx)
 	defer database.Close()
 
 	storage := store.NewStorage(database)
 
-	region, err := storage.Region.GetRegionByName(ctx, cfg.REGION)
+	region, err := storage.Region.GetRegionByName(ctx, REGION)
 	if err != nil {
 		log.Fatalf("failed to determine region:\n%v", err)
 	}
 
 	client := redis.NewClient(&redis.Options{
-		Addr: cfg.REDIS_URL,
+		Addr: config.Get("REDIS_URL"),
 	})
 
 	_, err = client.Ping(ctx).Result()
@@ -47,7 +45,7 @@ func main() {
 		log.Fatalf("failed connecting to redis:\n%v", err)
 	}
 
-	_, err = client.XGroupCreateMkStream(ctx, stream, cfg.REGION, "$").Result()
+	_, err = client.XGroupCreateMkStream(ctx, stream, REGION, "$").Result()
 	if err != nil && !strings.Contains(err.Error(), "exists") {
 		log.Fatalf("error creating group:\n%v", err)
 	}
@@ -58,8 +56,8 @@ func main() {
 		for {
 			res, err := client.XReadGroup(ctx, &redis.XReadGroupArgs{
 				Streams:  []string{stream, ">"},
-				Group:    cfg.REGION,
-				Consumer: cfg.WORKER_ID,
+				Group:    REGION,
+				Consumer: config.Get("WORKER_ID"),
 				Count:    10,
 			}).Result()
 			if err != nil {
@@ -112,7 +110,7 @@ func main() {
 					processedMsg = append(processedMsg, j.ID)
 				}
 
-				_, err := client.XAck(ctx, stream, cfg.REGION, processedMsg...).Result()
+				_, err := client.XAck(ctx, stream, REGION, processedMsg...).Result()
 				if err != nil {
 					log.Fatalf("error acknowledging message:\n%v", err)
 				}

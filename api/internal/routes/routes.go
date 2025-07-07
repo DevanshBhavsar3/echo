@@ -3,9 +3,9 @@ package routes
 import (
 	"net/http"
 
-	"github.com/DevanshBhavsar3/echo/api/config"
 	"github.com/DevanshBhavsar3/echo/api/internal/handler/v1"
 	"github.com/DevanshBhavsar3/echo/api/internal/middleware"
+	"github.com/DevanshBhavsar3/echo/common/config"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -13,8 +13,8 @@ import (
 )
 
 func SetupRoutes(app *fiber.App, handlers handler.Handler) {
-	ENV := config.GetEnv("ENV", "LOCAL")
-	FRONTEND_URL := config.GetEnv("FRONTEND_URL", "")
+	ENV := config.Get("ENV")
+	FRONTEND_URL := config.Get("FRONTEND_URL")
 
 	corsConfig := cors.Config{
 		AllowCredentials: true,

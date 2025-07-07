@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"time"
 
-	"github.com/DevanshBhavsar3/echo/db"
-	"github.com/DevanshBhavsar3/echo/db-worker/config"
-	"github.com/DevanshBhavsar3/echo/db/store"
+	"github.com/DevanshBhavsar3/echo/common/config"
+	"github.com/DevanshBhavsar3/echo/common/db"
+	"github.com/DevanshBhavsar3/echo/common/db/store"
 
 	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
@@ -23,15 +24,13 @@ func main() {
 		log.Fatalf("error loading publisher .env:\n%v", err)
 	}
 
-	cfg := config.LoadEnv()
-
 	database := db.New(ctx)
 	defer database.Close()
 
 	storage := store.NewStorage(database)
 
 	client := redis.NewClient(&redis.Options{
-		Addr: cfg.REDIS_URL,
+		Addr: config.Get("REDIS_URL"),
 	})
 
 	_, err = client.Ping(ctx).Result()
@@ -43,6 +42,7 @@ func main() {
 
 	go func() {
 		var ticks []store.WebsiteTick
+		start := time.Now()
 
 		for {
 			res, err := client.XRead(ctx, &redis.XReadArgs{
@@ -68,14 +68,18 @@ func main() {
 				}
 			}
 
-			if len(ticks) > 3 {
-				err := storage.WebsiteTick.BatchInsertTicks(ctx, ticks)
-				if err != nil {
-					log.Fatalf("error inserting ticks to db:\n%v", err)
+			if len(ticks) > 3 || time.Since(start) > time.Second*30 {
+				if len(ticks) > 0 {
+					err := storage.WebsiteTick.BatchInsertTicks(ctx, ticks)
+					if err != nil {
+						log.Fatalf("error inserting ticks to db:\n%v", err)
+					}
+
+					fmt.Printf("INSERTED %v TICKS", len(ticks))
+					ticks = nil
 				}
 
-				fmt.Printf("INSERTED %v TICKS", len(ticks))
-				ticks = nil
+				start = time.Now()
 			}
 		}
 	}()

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/DevanshBhavsar3/echo/api/pkg"
-	"github.com/DevanshBhavsar3/echo/db/store"
+	"github.com/DevanshBhavsar3/echo/common/db/store"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"

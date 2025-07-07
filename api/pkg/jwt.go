@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/DevanshBhavsar3/echo/api/config"
-
+	"github.com/DevanshBhavsar3/echo/common/config"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -16,7 +15,7 @@ var (
 )
 
 func init() {
-	JWT_SECRET = config.GetEnv("JWT_SECRET", "jwt_secret")
+	JWT_SECRET = config.Get("JWT_SECRET")
 	Exp = time.Minute * 5
 	Iss = "echo-api"
 }

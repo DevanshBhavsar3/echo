@@ -13,10 +13,6 @@ type Region struct {
 	Name string `json:"name"`
 }
 
-func (r *Region) ValidateAndGetID(region string) {
-	// set region id here
-}
-
 type RegionStorage struct {
 	db *pgxpool.Pool
 }

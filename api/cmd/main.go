@@ -6,21 +6,14 @@ import (
 
 	"github.com/DevanshBhavsar3/echo/api/internal/handler/v1"
 	"github.com/DevanshBhavsar3/echo/api/internal/routes"
-	"github.com/DevanshBhavsar3/echo/db"
+	"github.com/DevanshBhavsar3/echo/common/db"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/joho/godotenv"
 )
 
 func main() {
 	ctx := context.Background()
 	defer ctx.Done()
-
-	// Load Env
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("error loading api .env:\n%v", err)
-	}
 
 	// Connect to database
 	database := db.New(ctx)

@@ -2,8 +2,9 @@ go 1.24.4
 
 use (
 	./api
-	./common/db
 	./publisher
 	./worker
 	./db-worker
+	./common/config
+	./common/db
 )

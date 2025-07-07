@@ -62,3 +62,34 @@ services:
         condition: service_started
       migrate:
         condition: service_completed_successfully
+
+  worker:
+    build:
+      context: .
+      dockerfile: ./infra/Docker/worker/Dockerfile
+    environment:
+      - DATABASE_URL=postgres://postgres:secret@db:5432/postgres?sslmode=disable
+      - REDIS_URL=redis:6379
+    volumes:
+      - .env:/app/.env
+    depends_on:
+      redis:
+        condition: service_started
+      migrate:
+        condition: service_completed_successfully
+
+
+  db-worker:
+    build:
+      context: .
+      dockerfile: ./infra/Docker/db-worker/Dockerfile
+    environment:
+      - DATABASE_URL=postgres://postgres:secret@db:5432/postgres?sslmode=disable
+      - REDIS_URL=redis:6379
+    volumes:
+      - .env:/app/.env
+    depends_on:
+      redis:
+        condition: service_started
+      migrate:
+        condition: service_completed_successfully

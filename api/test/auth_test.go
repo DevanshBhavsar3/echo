@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/DevanshBhavsar3/echo/db/store"
+	"github.com/DevanshBhavsar3/echo/common/db/store"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,7 +20,7 @@ func TestAuth(t *testing.T) {
 			"password": "test@123"
 		}`)
 
-		resp, err := http.Post(API_URL, "application/json", bytes.NewBuffer(body))
+		resp, err := http.Post("http://localhost:3000", "application/json", bytes.NewBuffer(body))
 		if err != nil {
 			t.Error(err)
 		}

@@ -6,7 +6,7 @@ import (
 	"net/http/httptrace"
 	"time"
 
-	"github.com/DevanshBhavsar3/echo/db/store"
+	"github.com/DevanshBhavsar3/echo/common/db/store"
 )
 
 type Analytics struct {

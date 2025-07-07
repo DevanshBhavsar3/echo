@@ -5,13 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 	"time"
 
-	"github.com/DevanshBhavsar3/echo/db"
-	"github.com/DevanshBhavsar3/echo/db/store"
+	"github.com/DevanshBhavsar3/echo/common/config"
+	"github.com/DevanshBhavsar3/echo/common/db"
+	"github.com/DevanshBhavsar3/echo/common/db/store"
 
-	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -19,18 +18,7 @@ var ctx = context.Background()
 var stream = "echo:websites"
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("error loading publisher .env:\n%v", err)
-	}
-
-	var REDIS_URL string
-
-	value, ok := os.LookupEnv("REDIS_URL")
-	if !ok {
-		REDIS_URL = "localhost:6379"
-	}
-	REDIS_URL = value
+	REDIS_URL := config.Get("REDIS_URL ")
 
 	database := db.New(ctx)
 	defer database.Close()
@@ -41,7 +29,7 @@ func main() {
 		Addr: REDIS_URL,
 	})
 
-	_, err = client.Ping(ctx).Result()
+	_, err := client.Ping(ctx).Result()
 	if err != nil {
 		log.Fatalf("failed connecting to redis:\n%v", err)
 	}
