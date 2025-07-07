@@ -18,7 +18,7 @@ var ctx = context.Background()
 var stream = "echo:websites"
 
 func main() {
-	REDIS_URL := config.Get("REDIS_URL ")
+	REDIS_URL := config.Get("REDIS_URL")
 
 	database := db.New(ctx)
 	defer database.Close()

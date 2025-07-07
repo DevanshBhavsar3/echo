@@ -2,7 +2,7 @@ services:
   db:
     image: timescale/timescaledb-ha:pg17
     environment:
-      - POSTGRES_PASSWORD=secret
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
     healthcheck:
@@ -30,8 +30,6 @@ services:
     build:
       context: .
       dockerfile: ./infra/Docker/api/Dockerfile.dev
-    environment:
-      - DATABASE_URL=postgres://postgres:secret@db:5432/postgres?sslmode=disable
     ports:
       - "3000:3000"
     depends_on:
@@ -52,9 +50,6 @@ services:
     build:
       context: .
       dockerfile: ./infra/Docker/publisher/Dockerfile
-    environment:
-      - DATABASE_URL=postgres://postgres:secret@db:5432/postgres?sslmode=disable
-      - REDIS_URL=redis:6379
     volumes:
       - .env:/app/.env
     depends_on:
@@ -67,9 +62,6 @@ services:
     build:
       context: .
       dockerfile: ./infra/Docker/worker/Dockerfile
-    environment:
-      - DATABASE_URL=postgres://postgres:secret@db:5432/postgres?sslmode=disable
-      - REDIS_URL=redis:6379
     volumes:
       - .env:/app/.env
     depends_on:
@@ -83,9 +75,6 @@ services:
     build:
       context: .
       dockerfile: ./infra/Docker/db-worker/Dockerfile
-    environment:
-      - DATABASE_URL=postgres://postgres:secret@db:5432/postgres?sslmode=disable
-      - REDIS_URL=redis:6379
     volumes:
       - .env:/app/.env
     depends_on:
