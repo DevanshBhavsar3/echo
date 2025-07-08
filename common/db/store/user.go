@@ -63,8 +63,6 @@ func (s *UserStorage) Create(ctx context.Context, u User) (*User, error) {
 		switch {
 		case err.Error() == `ERROR: duplicate key value violates unique constraint "user_email_key" (SQLSTATE 23505)`:
 			return nil, ErrDuplicateEmail
-		case err.Error() == `ERROR: duplicate key value violates unique constraint "user_phone_number_key" (SQLSTATE 23505)`:
-			return nil, ErrDuplicatePhoneNumber
 		default:
 			return nil, err
 		}
@@ -138,6 +136,5 @@ func (s *UserStorage) GetById(ctx context.Context, id string) (*User, error) {
 }
 
 var (
-	ErrDuplicateEmail       = errors.New("a user with that email already exists")
-	ErrDuplicatePhoneNumber = errors.New("a user with that phone number already exists")
+	ErrDuplicateEmail = errors.New("a user with that email already exists")
 )

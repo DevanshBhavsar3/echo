@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/DevanshBhavsar3/echo/api/internal/types"
 	"github.com/DevanshBhavsar3/echo/api/pkg"
 	"github.com/DevanshBhavsar3/echo/common/db/store"
 
@@ -24,14 +25,8 @@ func NewWebsiteHandler(websiteStorage store.WebsiteStorage, regionStorage store.
 	}
 }
 
-type AddWebsitePayload struct {
-	Url       string   `json:"url" validate:"url"`
-	Frequency string   `json:"frequency" validate:"oneof=30s 1m 3m 5m"`
-	Regions   []string `json:"regions" validate:"min=1,dive,iso3166_1_alpha3"`
-}
-
 func (h *WebsiteHandler) AddWebsite(c *fiber.Ctx) error {
-	var body AddWebsitePayload
+	var body types.AddWebsiteBody
 
 	if err := c.BodyParser(&body); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{

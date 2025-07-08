@@ -1,6 +1,8 @@
 ## TODOS
 
 - [x] docker compose
+- [ ] tests for api
+- [ ] frontend for ticks
 - [ ] teams/organizations
 - [ ] status pages
 - [ ] oauth2

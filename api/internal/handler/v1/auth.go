@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/DevanshBhavsar3/echo/api/internal/types"
 	"github.com/DevanshBhavsar3/echo/api/pkg"
 	"github.com/DevanshBhavsar3/echo/common/db/store"
 
@@ -22,15 +23,8 @@ func NewAuthHandler(userStorage store.UserStorage) *AuthHandler {
 	}
 }
 
-type RegisterUserBody struct {
-	Name     string `json:"name" validate:"min=3,max=30"`
-	Email    string `json:"email" validate:"email,max=255"`
-	Avatar   string `json:"avatar" validate:"url"`
-	Password string `json:"password" validate:"min=3,max=72"`
-}
-
 func (h *AuthHandler) Register(c *fiber.Ctx) error {
-	var body RegisterUserBody
+	var body types.RegisterUserBody
 
 	if err := c.BodyParser(&body); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
@@ -63,10 +57,6 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 		case errors.Is(err, store.ErrDuplicateEmail):
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
 				"error": "User already exists.",
-			})
-		case errors.Is(err, store.ErrDuplicatePhoneNumber):
-			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-				"error": "Phone number already used.",
 			})
 		default:
 			c.Status(http.StatusInternalServerError).JSON(fiber.Map{
@@ -104,13 +94,8 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	return c.Status(http.StatusCreated).JSON(newUser)
 }
 
-type CreateTokenBody struct {
-	Email    string `json:"email" validate:"email,max=255"`
-	Password string `json:"password" validate:"min=3,max=72"`
-}
-
 func (h *AuthHandler) SignIn(c *fiber.Ctx) error {
-	var body CreateTokenBody
+	var body types.SignInBody
 
 	if err := c.BodyParser(&body); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
