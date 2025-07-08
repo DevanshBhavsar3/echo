@@ -1,10 +1,8 @@
 package test
 
 import (
-	"bytes"
 	"encoding/json"
-	"io"
-	"net/http"
+	"fmt"
 	"testing"
 
 	"github.com/DevanshBhavsar3/echo/api/internal/types"
@@ -16,6 +14,8 @@ import (
 var email = generateRandomEmail()
 
 func TestRegister(t *testing.T) {
+	registerUrl := fmt.Sprintf("%v/api/v1/auth/register", API_URL)
+
 	t.Run("Register user with correct data.", func(t *testing.T) {
 		user := types.RegisterUserBody{
 			Name:     "test user",
@@ -24,56 +24,33 @@ func TestRegister(t *testing.T) {
 			Password: "test@123",
 		}
 
-		body, err := json.Marshal(user)
+		res := sendRequest(t, registerUrl, user)
+
+		var data store.User
+		err := json.Unmarshal(res, &data)
 		if err != nil {
 			t.Error(err)
 		}
 
-		resp, err := http.Post("http://localhost:3000/api/v1/auth/register", "application/json", bytes.NewBuffer(body))
-		if err != nil {
-			t.Error(err)
-		}
-		defer resp.Body.Close()
-
-		resBody, err := io.ReadAll(resp.Body)
-		if err != nil {
-			t.Error(err)
-		}
-
-		var res store.User
-		err = json.Unmarshal(resBody, &res)
-		if err != nil {
-			t.Error(err)
-		}
-
-		assert.Equal(t, user.Email, user.Email)
+		assert.Equal(t, user.Email, data.Email)
 	})
 
 	t.Run("Fails to register user with correct data.", func(t *testing.T) {
-		body := []byte(`{
-			"name": "test user",
-			"email": "testuser@test.com",
-			"avatar": "https://google.com"
-		}`)
-
-		resp, err := http.Post("http://localhost:3000/api/v1/auth/register", "application/json", bytes.NewBuffer(body))
-		if err != nil {
-			t.Error(err)
-		}
-		defer resp.Body.Close()
-
-		resBody, err := io.ReadAll(resp.Body)
-		if err != nil {
-			t.Error(err)
+		body := types.RegisterUserBody{
+			Name:   "test user",
+			Email:  "testuser@test.com",
+			Avatar: "https://google.com",
 		}
 
-		var errorRes ErrorResponse
-		err = json.Unmarshal(resBody, &errorRes)
+		res := sendRequest(t, registerUrl, body)
+
+		var data ErrorResponse
+		err := json.Unmarshal(res, &data)
 		if err != nil {
 			t.Error(err)
 		}
 
-		assert.Equal(t, "Invalid data.", errorRes.Error)
+		assert.Equal(t, "Invalid data.", data.Error)
 	})
 
 	t.Run("Fails to register user with same email.", func(t *testing.T) {
@@ -86,52 +63,29 @@ func TestRegister(t *testing.T) {
 			Password: "test@123",
 		}
 
-		body, err := json.Marshal(user)
+		res := sendRequest(t, registerUrl, user)
+
+		var data store.User
+		err := json.Unmarshal(res, &data)
 		if err != nil {
 			t.Error(err)
 		}
 
-		resp, err := http.Post("http://localhost:3000/api/v1/auth/register", "application/json", bytes.NewBuffer(body))
-		if err != nil {
-			t.Error(err)
-		}
-		defer resp.Body.Close()
+		res = sendRequest(t, registerUrl, user)
 
-		resBody, err := io.ReadAll(resp.Body)
-		if err != nil {
-			t.Error(err)
-		}
-
-		var res store.User
-		err = json.Unmarshal(resBody, &res)
+		var data1 ErrorResponse
+		err = json.Unmarshal(res, &data1)
 		if err != nil {
 			t.Error(err)
 		}
 
-		assert.Equal(t, user.Email, user.Email)
-
-		resp, err = http.Post("http://localhost:3000/api/v1/auth/register", "application/json", bytes.NewBuffer(body))
-		if err != nil {
-			t.Error(err)
-		}
-		defer resp.Body.Close()
-
-		resBody, err = io.ReadAll(resp.Body)
-		if err != nil {
-			t.Error(err)
-		}
-
-		var errorRes ErrorResponse
-		err = json.Unmarshal(resBody, &errorRes)
-		if err != nil {
-			t.Error(err)
-		}
-
-		assert.Equal(t, "User already exists.", errorRes.Error)
+		assert.Equal(t, "User already exists.", data1.Error)
 	})
 }
 
 func TestSignin(t *testing.T) {
+	signinUrl := fmt.Sprintf("%v/api/v1/auth/signin", API_URL)
+
 	t.Run("Signin user with correct data.", func(t *testing.T) {
 		user := types.RegisterUserBody{
 			Name:     "test user",
@@ -140,29 +94,15 @@ func TestSignin(t *testing.T) {
 			Password: "test@123",
 		}
 
-		body, err := json.Marshal(user)
+		res := sendRequest(t, signinUrl, user)
+
+		var data store.User
+		err := json.Unmarshal(res, &data)
 		if err != nil {
 			t.Error(err)
 		}
 
-		resp, err := http.Post("http://localhost:3000/api/v1/auth/signin", "application/json", bytes.NewBuffer(body))
-		if err != nil {
-			t.Error(err)
-		}
-		defer resp.Body.Close()
-
-		resBody, err := io.ReadAll(resp.Body)
-		if err != nil {
-			t.Error(err)
-		}
-
-		var res store.User
-		err = json.Unmarshal(resBody, &res)
-		if err != nil {
-			t.Error(err)
-		}
-
-		assert.Equal(t, user.Email, user.Email)
+		assert.Equal(t, user.Email, data.Email)
 	})
 
 	t.Run("Fails to sign in user with incorrect password.", func(t *testing.T) {
@@ -173,29 +113,15 @@ func TestSignin(t *testing.T) {
 			Password: "invalid@123",
 		}
 
-		body, err := json.Marshal(user)
+		res := sendRequest(t, signinUrl, user)
+
+		var data ErrorResponse
+		err := json.Unmarshal(res, &data)
 		if err != nil {
 			t.Error(err)
 		}
 
-		resp, err := http.Post("http://localhost:3000/api/v1/auth/signin", "application/json", bytes.NewBuffer(body))
-		if err != nil {
-			t.Error(err)
-		}
-		defer resp.Body.Close()
-
-		resBody, err := io.ReadAll(resp.Body)
-		if err != nil {
-			t.Error(err)
-		}
-
-		var errorRes ErrorResponse
-		err = json.Unmarshal(resBody, &errorRes)
-		if err != nil {
-			t.Error(err)
-		}
-
-		assert.Equal(t, "Invalid password.", errorRes.Error)
+		assert.Equal(t, "Invalid password.", data.Error)
 	})
 
 	t.Run("Fails to sign in with unknown email.", func(t *testing.T) {
@@ -206,28 +132,14 @@ func TestSignin(t *testing.T) {
 			Password: "test@123",
 		}
 
-		body, err := json.Marshal(user)
+		res := sendRequest(t, signinUrl, user)
+
+		var data ErrorResponse
+		err := json.Unmarshal(res, &data)
 		if err != nil {
 			t.Error(err)
 		}
 
-		resp, err := http.Post("http://localhost:3000/api/v1/auth/signin", "application/json", bytes.NewBuffer(body))
-		if err != nil {
-			t.Error(err)
-		}
-		defer resp.Body.Close()
-
-		resBody, err := io.ReadAll(resp.Body)
-		if err != nil {
-			t.Error(err)
-		}
-
-		var errorRes ErrorResponse
-		err = json.Unmarshal(resBody, &errorRes)
-		if err != nil {
-			t.Error(err)
-		}
-
-		assert.Equal(t, "User does not exists.", errorRes.Error)
+		assert.Equal(t, "User does not exists.", data.Error)
 	})
 }

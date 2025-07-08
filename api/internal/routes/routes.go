@@ -13,17 +13,9 @@ import (
 )
 
 func SetupRoutes(app *fiber.App, handlers handler.Handler) {
-	ENV := config.Get("ENV")
-	FRONTEND_URL := config.Get("FRONTEND_URL")
-
 	corsConfig := cors.Config{
 		AllowCredentials: true,
-	}
-
-	if ENV == "LOCAL" {
-		corsConfig.AllowOrigins = "http://localhost:5173"
-	} else {
-		corsConfig.AllowOrigins = FRONTEND_URL
+		AllowOrigins:     config.Get("FRONTEND_URL"),
 	}
 
 	// Middlewares

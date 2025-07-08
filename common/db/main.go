@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"github.com/DevanshBhavsar3/echo/common/config"
@@ -11,8 +10,6 @@ import (
 
 func New(ctx context.Context) *pgxpool.Pool {
 	DATABASE_URL := config.Get("DATABASE_URL")
-
-	fmt.Println("URL", DATABASE_URL)
 
 	dbPool, err := pgxpool.New(ctx, DATABASE_URL)
 	if err != nil {

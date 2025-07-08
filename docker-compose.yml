@@ -45,7 +45,7 @@ services:
           ignore:
             - bin
             - tmp
-
+  
   publisher:
     build:
       context: .
