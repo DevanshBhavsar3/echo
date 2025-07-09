@@ -13,7 +13,7 @@ func AuthMiddleware(c *fiber.Ctx) error {
 	token := c.Cookies("token")
 	if token == "" {
 		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
-			"error": "token not provided.",
+			"error": "Token not provided.",
 		})
 	}
 
@@ -21,7 +21,7 @@ func AuthMiddleware(c *fiber.Ctx) error {
 	jwtToken, err := pkg.ValidateJWT(token)
 	if err != nil {
 		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
-			"error": "invalid token.",
+			"error": "Invalid token.",
 		})
 	}
 

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -30,13 +31,14 @@ func (h *WebsiteHandler) AddWebsite(c *fiber.Ctx) error {
 
 	if err := c.BodyParser(&body); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"error": "failed to parse body",
+			"error": "Failed to parse body.",
 		})
 	}
 
 	if err := pkg.Validate.Struct(body); err != nil {
+		fmt.Println(err)
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"error": "invalid body",
+			"error": "Invalid body.",
 		})
 	}
 
@@ -45,7 +47,7 @@ func (h *WebsiteHandler) AddWebsite(c *fiber.Ctx) error {
 	freq, err := time.ParseDuration(body.Frequency)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"error": "invalid freq",
+			"error": "Invalid freq.",
 		})
 	}
 
@@ -59,11 +61,11 @@ func (h *WebsiteHandler) AddWebsite(c *fiber.Ctx) error {
 			switch {
 			case errors.Is(err, store.ErrNotFound):
 				return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-					"error": "invalid region provided",
+					"error": "Invalid region provided.",
 				})
 			default:
 				return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-					"error": "failed to get regions",
+					"error": "Failed to get regions.",
 				})
 			}
 		}
@@ -74,7 +76,7 @@ func (h *WebsiteHandler) AddWebsite(c *fiber.Ctx) error {
 	id, err := h.websiteStorage.CreateWebsite(c.Context(), newWebsite, userID)
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": "error creating website.",
+			"error": "Error creating website.",
 		})
 	}
 
@@ -90,7 +92,7 @@ func (h *WebsiteHandler) GetWebsiteById(c *fiber.Ctx) error {
 	err := uuid.Validate(websiteId)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"error": "invalid website id.",
+			"error": "Invalid website id.",
 		})
 	}
 
@@ -99,14 +101,13 @@ func (h *WebsiteHandler) GetWebsiteById(c *fiber.Ctx) error {
 		switch {
 		case errors.Is(err, store.ErrNotFound):
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-				"error": "website not found.",
+				"error": "Website not found.",
 			})
 		default:
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-				"error": "error getting website.",
+				"error": "Error getting website.",
 			})
 		}
-
 	}
 
 	return c.Status(http.StatusOK).JSON(website)
