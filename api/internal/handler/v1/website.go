@@ -2,7 +2,6 @@ package handler
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -36,7 +35,6 @@ func (h *WebsiteHandler) AddWebsite(c *fiber.Ctx) error {
 	}
 
 	if err := pkg.Validate.Struct(body); err != nil {
-		fmt.Println(err)
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid body.",
 		})

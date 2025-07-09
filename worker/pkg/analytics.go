@@ -1,7 +1,6 @@
 package pkg
 
 import (
-	"log"
 	"net/http"
 	"net/http/httptrace"
 	"time"
@@ -33,7 +32,9 @@ func (a *Analytics) Ping() {
 
 	res, err := http.DefaultTransport.RoundTrip(req)
 	if err != nil {
-		log.Fatal(err)
+		a.Status = store.Down
+		a.ResponseTimeMS = time.Since(start).Milliseconds()
+		return
 	}
 
 	switch {
