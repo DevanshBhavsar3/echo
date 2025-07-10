@@ -7,4 +7,5 @@ use (
 	./db-worker
 	./common/config
 	./common/db
+	./common/redisClient
 )

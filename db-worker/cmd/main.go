@@ -2,80 +2,48 @@ package main
 
 import (
 	"context"
-	"encoding/json"
-	"log"
 	"time"
 
-	"github.com/DevanshBhavsar3/echo/common/config"
 	"github.com/DevanshBhavsar3/echo/common/db"
 	"github.com/DevanshBhavsar3/echo/common/db/store"
-
-	"github.com/joho/godotenv"
-	"github.com/redis/go-redis/v9"
+	"github.com/DevanshBhavsar3/echo/common/redisClient"
+	"github.com/DevanshBhavsar3/echo/db-worker/internal"
 )
 
-var ctx = context.Background()
-var stream = "echo:ticks"
+var (
+	BATCH_SIZE    = 100
+	BATCH_TIMEOUT = time.Second * 5
+)
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("error loading publisher .env:\n%v", err)
-	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	database := db.New(ctx)
 	defer database.Close()
 
 	storage := store.NewStorage(database)
 
-	client := redis.NewClient(&redis.Options{
-		Addr: config.Get("REDIS_URL"),
-	})
-
-	_, err = client.Ping(ctx).Result()
-	if err != nil {
-		log.Fatalf("failed connecting to redis:\n%v", err)
-	}
+	rclient := redisClient.NewRedisClient(ctx)
 
 	var ticks []store.WebsiteTick
-	start := time.Now()
+
+	ticker := time.NewTicker(BATCH_TIMEOUT)
+	defer ticker.Stop()
 
 	for {
-		res, err := client.XRead(ctx, &redis.XReadArgs{
-			Streams: []string{stream, "$"},
-			Count:   100,
-		}).Result()
-		if err != nil && err != redis.Nil {
-			log.Fatalf("failed to read from stream:\n%v", err)
-		}
-
-		for _, i := range res {
-			for _, j := range i.Messages {
-				data := j.Values["tick"].(string)
-
-				var tick store.WebsiteTick
-
-				err := json.Unmarshal([]byte(data), &tick)
-				if err != nil {
-					log.Fatalf("error parsing redis data:\n%v", err)
-				}
-
-				ticks = append(ticks, tick)
-			}
-		}
-
-		if len(ticks) > 100 || time.Since(start) > time.Second*30 {
+		select {
+		case <-ticker.C:
 			if len(ticks) > 0 {
-				err := storage.WebsiteTick.BatchInsertTicks(ctx, ticks)
-				if err != nil {
-					log.Fatalf("error inserting ticks to db:\n%v", err)
-				}
-
-				log.Printf("INSERTED %v TICKS", len(ticks))
-				ticks = nil
+				internal.ProcessBatch(ctx, storage, &ticks)
 			}
+		default:
+			res := rclient.XRead(ctx, redisClient.DatabaseStream)
+			internal.AddToBatch(res, &ticks)
 
-			start = time.Now()
+			if len(ticks) > BATCH_SIZE {
+				internal.ProcessBatch(ctx, storage, &ticks)
+			}
 		}
 	}
 }
