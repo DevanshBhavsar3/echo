@@ -67,7 +67,6 @@ func main() {
 			for _, i := range res {
 				var processedMsg []string
 
-				// TODO: Only process the current region's websites
 				for _, j := range i.Messages {
 					data := j.Values["website"].(string)
 
@@ -76,6 +75,18 @@ func main() {
 					err := json.Unmarshal([]byte(data), &website)
 					if err != nil {
 						log.Fatalf("error parsing redis data:\n%v", err)
+					}
+
+					var supportedRegion bool
+					for _, r := range website.Regions {
+						if r.Name == REGION {
+							supportedRegion = true
+							break
+						}
+					}
+
+					if !supportedRegion {
+						continue
 					}
 
 					analyst := pkg.NewAnalytics(website.Url)
@@ -110,9 +121,11 @@ func main() {
 					processedMsg = append(processedMsg, j.ID)
 				}
 
-				_, err := client.XAck(ctx, stream, REGION, processedMsg...).Result()
-				if err != nil {
-					log.Fatalf("error acknowledging message:\n%v", err)
+				if len(processedMsg) > 0 {
+					_, err := client.XAck(ctx, stream, REGION, processedMsg...).Result()
+					if err != nil {
+						log.Fatalf("error acknowledging message:\n%v", err)
+					}
 				}
 			}
 		}
