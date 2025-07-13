@@ -28,8 +28,8 @@ export default function HomePage() {
 
           <div className="grid gap-3">
             <div className="grid grid-cols-2 gap-3 w-fit items-center">
-              <Link href={"/signup"}>
-                <Button size={"sm"}>Sign up</Button>
+              <Link href={"/register"}>
+                <Button size={"sm"}>Register</Button>
               </Link>
               <Link href={"/learn"} className="hover:underline underline-offset-4">
                 Learn more
