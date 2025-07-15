@@ -7,16 +7,16 @@ export function ProgressChart() {
   const chartData = [
     { month: "January", uptime: 20 },
     { month: "February", uptime: 32 },
-    { month: "March", uptime: 50 },
-    { month: "April", uptime: 65 },
-    { month: "May", uptime: 70 },
-    { month: "June", uptime: 67 },
-    { month: "July", uptime: 86 },
-    { month: "August", uptime: 90 },
-    { month: "September", uptime: 93 },
-    { month: "October", uptime: 87 },
-    { month: "November", uptime: 89 },
-    { month: "December", uptime: 99 },
+    { month: "March", uptime: 36 },
+    { month: "April", uptime: 42 },
+    { month: "May", uptime: 44 },
+    { month: "June", uptime: 49 },
+    { month: "July", uptime: 50 },
+    { month: "August", uptime: 70 },
+    { month: "September", uptime: 75 },
+    { month: "October", uptime: 71 },
+    { month: "November", uptime: 67 },
+    { month: "December", uptime: 87 },
   ]
   const chartConfig = {
     uptime: {
@@ -26,7 +26,7 @@ export function ProgressChart() {
   } satisfies ChartConfig
 
   return (
-    <ChartContainer config={chartConfig} className="hidden md:block fixed z-0 bottom-0 left-0 w-full h-1/2 opacity-50">
+    <ChartContainer config={chartConfig} className="hidden md:block fixed z-0 bottom-0 left-0 w-full h-full opacity-50 z-0">
       <AreaChart
         accessibilityLayer
         data={chartData}

@@ -33,7 +33,7 @@ func SetupRoutes(app *fiber.App, handlers handler.Handler) {
 	// Auth routes
 	authRouter := v1Router.Group("/auth")
 	authRouter.Post("/register", handlers.Auth.Register)
-	authRouter.Post("/signin", handlers.Auth.SignIn)
+	authRouter.Post("/login", handlers.Auth.Login)
 	authRouter.Get("/user", middleware.AuthMiddleware, handlers.Auth.GetUser)
 	authRouter.Post("/logout", handlers.Auth.Logout)
 

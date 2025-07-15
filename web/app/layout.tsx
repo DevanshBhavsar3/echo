@@ -3,6 +3,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Geist, Space_Mono } from "next/font/google";
 import { HeaderLine } from "@/components/header-line";
+import { Toaster } from "@/components/ui/sonner";
 
 const spaceMono = Space_Mono({
   weight: ["400", "700"],
@@ -35,6 +36,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <Toaster richColors />
         </ThemeProvider>
       </body>
     </html>

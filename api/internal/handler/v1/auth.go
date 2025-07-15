@@ -56,7 +56,7 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 		switch {
 		case errors.Is(err, store.ErrDuplicateEmail):
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-				"error": "User already exists.",
+				"error": "Email already used.",
 			})
 		default:
 			c.Status(http.StatusInternalServerError).JSON(fiber.Map{
@@ -94,8 +94,8 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	return c.Status(http.StatusCreated).JSON(newUser)
 }
 
-func (h *AuthHandler) SignIn(c *fiber.Ctx) error {
-	var body types.SignInBody
+func (h *AuthHandler) Login(c *fiber.Ctx) error {
+	var body types.LoginBody
 
 	if err := c.BodyParser(&body); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
@@ -118,7 +118,7 @@ func (h *AuthHandler) SignIn(c *fiber.Ctx) error {
 			})
 		default:
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to sign in.",
+				"error": "Failed to login.",
 			})
 		}
 	}
@@ -162,7 +162,7 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 	c.Cookie(&cookie)
 
 	return c.Status(http.StatusOK).JSON(fiber.Map{
-		"msg": "Signed out successfully.",
+		"msg": "Logged out successfully.",
 	})
 }
 

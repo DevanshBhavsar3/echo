@@ -14,7 +14,7 @@ type Handler struct {
 	}
 	Auth interface {
 		Register(c *fiber.Ctx) error
-		SignIn(c *fiber.Ctx) error
+		Login(c *fiber.Ctx) error
 		Logout(c *fiber.Ctx) error
 		GetUser(c *fiber.Ctx) error
 	}

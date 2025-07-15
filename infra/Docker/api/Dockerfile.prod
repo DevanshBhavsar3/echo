@@ -16,6 +16,6 @@ COPY --from=build-stage /app/api/bin/echo-api ./echo-api
 
 RUN chmod +x /app/echo-api
 
-EXPOSE 3000
+EXPOSE 3001
 
 ENTRYPOINT ["/app/echo-api"]
