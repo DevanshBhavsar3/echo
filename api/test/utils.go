@@ -12,7 +12,7 @@ import (
 	"github.com/DevanshBhavsar3/echo/api/internal/types"
 )
 
-var API_URL = "http://localhost:3000"
+var API_URL = "http://localhost:3001"
 
 var randomEmail = generateRandomEmail()
 
@@ -27,7 +27,7 @@ func generateRandomEmail() string {
 	return randomEmail
 }
 
-func sendRequest(t *testing.T, method string, url string, data interface{}, cookies []*http.Cookie) ([]*http.Cookie, []byte) {
+func sendRequest(t *testing.T, method string, url string, data interface{}, cookies []*http.Cookie) []byte {
 	t.Helper()
 
 	body, err := json.Marshal(data)
@@ -54,33 +54,33 @@ func sendRequest(t *testing.T, method string, url string, data interface{}, cook
 	}
 	defer res.Body.Close()
 
-	resCookies := res.Cookies()
-
 	resBody, err := io.ReadAll(res.Body)
 	if err != nil {
 		t.Error(err)
 	}
 
-	return resCookies, resBody
+	return resBody
 }
 
 func getToken(t *testing.T, email string) string {
 	t.Helper()
 
-	url := fmt.Sprintf("%v/api/v1/auth/signin", API_URL)
+	url := fmt.Sprintf("%v/api/v1/auth/login", API_URL)
 
-	user := types.SignInBody{
+	user := types.LoginBody{
 		Email:    email,
 		Password: "test@123",
 	}
 
-	cookies, _ := sendRequest(t, "POST", url, user, nil)
+	res := sendRequest(t, "POST", url, user, nil)
 
-	if len(cookies) == 0 {
-		t.Fatal("No cookies returned from signin request")
+	var data types.AuthResponse
+	err := json.Unmarshal(res, &data)
+	if err != nil {
+		t.Error(err)
 	}
 
-	return cookies[0].Value
+	return data.Token
 }
 
 func getWebsiteId(t *testing.T, tokenCookie *http.Cookie) string {
@@ -94,7 +94,7 @@ func getWebsiteId(t *testing.T, tokenCookie *http.Cookie) string {
 		Regions:   []string{"IND"},
 	}
 
-	_, res := sendRequest(t, "POST", url, website, []*http.Cookie{tokenCookie})
+	res := sendRequest(t, "POST", url, website, []*http.Cookie{tokenCookie})
 
 	var data types.AddWebsiteResponse
 	err := json.Unmarshal(res, &data)

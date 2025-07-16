@@ -1,10 +1,14 @@
-import axios, { AxiosError } from "axios";
-import { FormState, RegisterFormSchema } from "../lib/definitions";
-import { API_URL } from "../lib/constant";
-import { toast } from "sonner";
+"use server"
 
-export async function register(state: FormState, formData: FormData) {
-  const parsedData = RegisterFormSchema.safeParse({
+import axios, { AxiosError } from "axios";
+import { loginSchema, registerSchema } from "@/lib/types";
+import { AuthError } from "next-auth";
+import { API_URL } from "../constants";
+import { redirect } from "next/navigation";
+import { signIn } from "../auth";
+
+export async function register(prevState: any, formData: FormData) {
+  const parsedData = registerSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),
     password: formData.get("password"),
@@ -18,38 +22,54 @@ export async function register(state: FormState, formData: FormData) {
   }
 
   try {
-    const repsonse = await axios.post(`${API_URL}/auth/register`, {
+    await  || "An error occurred during registration.", xios.post(`${API_URL}/auth/register`, {
       ...parsedData.data,
       avatar: "https://api.dicebear.com/6.x/initials/svg?seed=" + parsedData.data.name,
     })
-
-    toast.success("Registration successful!")
   } catch (error) {
     if (error instanceof AxiosError) {
-      toast.error(error.response?.data?.error)
-      return
+      return {
+        error: error.response?.data?.error || "An error occurred during registration.",
+      }
     }
 
-    toast.error("Registration failed.")
+    return {
+      error: "An unexpected error occurred.",
+    }
   }
+
+
+  redirect("/login")
 }
 
-export async function login(state: FormState, formData: FormData) {
-  const data = Object.fromEntries(formData.entries())
+export async function login(prevState: any, formData: FormData) {
+  const values = Object.fromEntries(formData.entries());
+
+  const parsedData = loginSchema.safeParse({
+    email: values["email"],
+    password: values["password"],
+  })
+
+  if (!parsedData.success) {
+    return { error: parsedData.error.issues[0].message }
+  }
+
+  const { email, password } = parsedData.data;
 
   try {
-    const repsonse = await axios.post(`${API_URL}/auth/login`, {
-      email: data.email,
-      password: data.password,
-    })
-
-    toast.success("Login successful!")
+    await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
   } catch (error) {
-    if (error instanceof AxiosError) {
-      toast.error(error.response?.data?.error)
-      return
+    if (error instanceof AuthError) {
+      return { error: error.cause?.err?.message }
     }
 
-    toast.error("Login failed.")
+    return { error: "An unexpected error occurred during login." }
   }
+
+
+  redirect("/")
 }

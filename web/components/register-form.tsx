@@ -78,6 +78,13 @@ export function RegisterForm({
                   </div>
                 )}
               </div>
+              {
+                state?.error && (
+                  <p className="text-sm font-sans text-muted-foreground">
+                    {state.error}
+                  </p>
+                )
+              }
               <Button type="submit" disabled={pending} className="w-full">
                 Register
               </Button>

@@ -23,15 +23,15 @@ func TestRegister(t *testing.T) {
 			Password: "test@123",
 		}
 
-		_, res := sendRequest(t, "POST", url, user, nil)
+		res := sendRequest(t, "POST", url, user, nil)
 
-		var data store.User
+		var data types.AuthResponse
 		err := json.Unmarshal(res, &data)
 		if err != nil {
 			t.Error(err)
 		}
 
-		assert.Equal(t, user.Email, data.Email)
+		assert.Equal(t, user.Email, data.User.Email)
 	})
 
 	t.Run("Fails to register user with incorrect data.", func(t *testing.T) {
@@ -41,7 +41,7 @@ func TestRegister(t *testing.T) {
 			Avatar: "https://google.com",
 		}
 
-		_, res := sendRequest(t, "POST", url, body, nil)
+		res := sendRequest(t, "POST", url, body, nil)
 
 		var data types.ErrorResponse
 		err := json.Unmarshal(res, &data)
@@ -60,15 +60,15 @@ func TestRegister(t *testing.T) {
 			Password: "test@123",
 		}
 
-		_, res := sendRequest(t, "POST", url, user, nil)
+		res := sendRequest(t, "POST", url, user, nil)
 
-		var data store.User
+		var data types.AuthResponse
 		err := json.Unmarshal(res, &data)
 		if err != nil {
 			t.Error(err)
 		}
 
-		_, res = sendRequest(t, "POST", url, user, nil)
+		res = sendRequest(t, "POST", url, user, nil)
 
 		var data1 types.ErrorResponse
 		err = json.Unmarshal(res, &data1)
@@ -76,42 +76,41 @@ func TestRegister(t *testing.T) {
 			t.Error(err)
 		}
 
-		assert.Equal(t, "User already exists.", data1.Error)
+		assert.Equal(t, "Email already used.", data1.Error)
 	})
 }
 
-func TestSignin(t *testing.T) {
-	url := fmt.Sprintf("%v/api/v1/auth/signin", API_URL)
+func TestLogin(t *testing.T) {
+	url := fmt.Sprintf("%v/api/v1/auth/login", API_URL)
 
-	t.Run("Signin user with correct data.", func(t *testing.T) {
-		user := types.SignInBody{
+	t.Run("Login user with correct data.", func(t *testing.T) {
+		user := types.LoginBody{
 			Email:    randomEmail,
 			Password: "test@123",
 		}
 
-		cookies, res := sendRequest(t, "POST", url, user, nil)
+		res := sendRequest(t, "POST", url, user, nil)
 
-		// Check if we got authentication cookies
-		if !assert.NotEmpty(t, cookies) {
-			t.Error("expected authentication cookies")
-		}
-
-		var data store.User
+		var data types.AuthResponse
 		err := json.Unmarshal(res, &data)
 		if err != nil {
 			t.Error(err)
 		}
 
-		assert.Equal(t, user.Email, data.Email)
+		if !assert.NotEmpty(t, data.Token) {
+			t.Error("expected authentication token")
+		}
+
+		assert.Equal(t, user.Email, data.User.Email)
 	})
 
 	t.Run("Fails to sign in user with incorrect password.", func(t *testing.T) {
-		user := types.SignInBody{
+		user := types.LoginBody{
 			Email:    randomEmail,
 			Password: "invalid@123",
 		}
 
-		_, res := sendRequest(t, "POST", url, user, nil)
+		res := sendRequest(t, "POST", url, user, nil)
 
 		var data types.ErrorResponse
 		err := json.Unmarshal(res, &data)
@@ -123,12 +122,12 @@ func TestSignin(t *testing.T) {
 	})
 
 	t.Run("Fails to sign in with unknown email.", func(t *testing.T) {
-		user := types.SignInBody{
+		user := types.LoginBody{
 			Email:    "invalid@echo.test",
 			Password: "test@123",
 		}
 
-		_, res := sendRequest(t, "POST", url, user, nil)
+		res := sendRequest(t, "POST", url, user, nil)
 
 		var data types.ErrorResponse
 		err := json.Unmarshal(res, &data)
@@ -151,7 +150,7 @@ func TestAuth(t *testing.T) {
 			Value: token,
 		}
 
-		_, res := sendRequest(t, "GET", url, nil, []*http.Cookie{tokenCookie})
+		res := sendRequest(t, "GET", url, nil, []*http.Cookie{tokenCookie})
 
 		var data store.User
 		err := json.Unmarshal(res, &data)
@@ -165,7 +164,7 @@ func TestAuth(t *testing.T) {
 	})
 
 	t.Run("Fails to get user data without token.", func(t *testing.T) {
-		_, res := sendRequest(t, "GET", url, nil, nil)
+		res := sendRequest(t, "GET", url, nil, nil)
 
 		var data types.ErrorResponse
 		err := json.Unmarshal(res, &data)
@@ -185,7 +184,7 @@ func TestAuth(t *testing.T) {
 			Value: malformedToken,
 		}
 
-		_, res := sendRequest(t, "GET", url, nil, []*http.Cookie{tokenCookie})
+		res := sendRequest(t, "GET", url, nil, []*http.Cookie{tokenCookie})
 
 		var data types.ErrorResponse
 		err := json.Unmarshal(res, &data)

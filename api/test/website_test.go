@@ -28,7 +28,7 @@ func TestCreateWebsite(t *testing.T) {
 			Regions:   []string{"IND"},
 		}
 
-		_, res := sendRequest(t, "POST", url, website, []*http.Cookie{tokenCookie})
+		res := sendRequest(t, "POST", url, website, []*http.Cookie{tokenCookie})
 
 		var data types.AddWebsiteResponse
 		err := json.Unmarshal(res, &data)
@@ -47,7 +47,7 @@ func TestCreateWebsite(t *testing.T) {
 			Regions:   []string{"IND"},
 		}
 
-		_, res := sendRequest(t, "POST", url, website, []*http.Cookie{tokenCookie})
+		res := sendRequest(t, "POST", url, website, []*http.Cookie{tokenCookie})
 
 		var data types.ErrorResponse
 		err := json.Unmarshal(res, &data)
@@ -65,7 +65,7 @@ func TestCreateWebsite(t *testing.T) {
 			Regions:   []string{"IND"},
 		}
 
-		_, res := sendRequest(t, "POST", url, website, []*http.Cookie{tokenCookie})
+		res := sendRequest(t, "POST", url, website, []*http.Cookie{tokenCookie})
 
 		var data types.ErrorResponse
 		err := json.Unmarshal(res, &data)
@@ -83,7 +83,7 @@ func TestCreateWebsite(t *testing.T) {
 			Regions:   []string{"ARE"},
 		}
 
-		_, res := sendRequest(t, "POST", url, website, []*http.Cookie{tokenCookie})
+		res := sendRequest(t, "POST", url, website, []*http.Cookie{tokenCookie})
 
 		var data types.ErrorResponse
 		err := json.Unmarshal(res, &data)
@@ -108,7 +108,7 @@ func TestGetWebsite(t *testing.T) {
 
 		url := fmt.Sprintf("%v/api/v1/website/%v", API_URL, websiteId)
 
-		_, res := sendRequest(t, "GET", url, nil, []*http.Cookie{tokenCookie})
+		res := sendRequest(t, "GET", url, nil, []*http.Cookie{tokenCookie})
 
 		var data store.Website
 		err := json.Unmarshal(res, &data)
@@ -124,7 +124,7 @@ func TestGetWebsite(t *testing.T) {
 
 		url := fmt.Sprintf("%v/api/v1/website/%v", API_URL, websiteId)
 
-		_, res := sendRequest(t, "GET", url, nil, []*http.Cookie{tokenCookie})
+		res := sendRequest(t, "GET", url, nil, []*http.Cookie{tokenCookie})
 
 		var data types.ErrorResponse
 		err := json.Unmarshal(res, &data)
@@ -140,7 +140,7 @@ func TestGetWebsite(t *testing.T) {
 
 		url := fmt.Sprintf("%v/api/v1/website/%v", API_URL, websiteId)
 
-		_, res := sendRequest(t, "GET", url, nil, []*http.Cookie{tokenCookie})
+		res := sendRequest(t, "GET", url, nil, []*http.Cookie{tokenCookie})
 
 		var data types.ErrorResponse
 		err := json.Unmarshal(res, &data)
@@ -176,7 +176,7 @@ func TestGetWebsite(t *testing.T) {
 
 		url = fmt.Sprintf("%v/api/v1/website/%v", API_URL, websiteId)
 
-		_, res := sendRequest(t, "GET", url, nil, []*http.Cookie{tokenCookie})
+		res := sendRequest(t, "GET", url, nil, []*http.Cookie{tokenCookie})
 
 		var data types.ErrorResponse
 		err := json.Unmarshal(res, &data)

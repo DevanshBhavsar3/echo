@@ -82,16 +82,10 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 		})
 	}
 
-	cookie := fiber.Cookie{
-		Name:     "token",
-		Value:    token,
-		Expires:  time.Now().Add(pkg.Exp),
-		Secure:   true,
-		SameSite: "none",
-	}
-	c.Cookie(&cookie)
-
-	return c.Status(http.StatusCreated).JSON(newUser)
+	return c.Status(http.StatusCreated).JSON(fiber.Map{
+		"token": token,
+		"user":  newUser,
+	})
 }
 
 func (h *AuthHandler) Login(c *fiber.Ctx) error {
@@ -146,14 +140,10 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 		})
 	}
 
-	cookie := fiber.Cookie{
-		Name:    "token",
-		Value:   token,
-		Expires: time.Now().Add(pkg.Exp),
-	}
-	c.Cookie(&cookie)
-
-	return c.Status(http.StatusOK).JSON(user)
+	return c.Status(http.StatusOK).JSON(fiber.Map{
+		"token": token,
+		"user":  user,
+	})
 }
 
 func (h *AuthHandler) Logout(c *fiber.Ctx) error {
