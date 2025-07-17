@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Geist, Space_Mono } from "next/font/google";
-import { HeaderLine } from "@/components/header-line";
 import { Toaster } from "@/components/ui/sonner";
 
 const spaceMono = Space_Mono({

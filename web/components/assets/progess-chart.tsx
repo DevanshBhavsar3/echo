@@ -1,7 +1,7 @@
 "use client"
 
-import { Area, AreaChart, XAxis } from "recharts";
-import { ChartConfig, ChartContainer, ChartTooltipContent } from "../ui/chart";
+import { Area, AreaChart } from "recharts";
+import { ChartConfig, ChartContainer } from "../ui/chart";
 
 export function ProgressChart() {
   const chartData = [
@@ -26,7 +26,7 @@ export function ProgressChart() {
   } satisfies ChartConfig
 
   return (
-    <ChartContainer config={chartConfig} className="hidden md:block fixed z-0 bottom-0 left-0 w-full h-full opacity-50 z-0">
+    <ChartContainer config={chartConfig} className="hidden md:block fixed z-0 bottom-0 left-0 w-full h-full opacity-50">
       <AreaChart
         accessibilityLayer
         data={chartData}

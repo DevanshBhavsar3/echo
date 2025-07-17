@@ -1,27 +1,27 @@
-"use client"
+"use client";
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import Link from "next/link"
-import { GoogleIcon } from "./assets/google"
-import { GithubIcon } from "./assets/github"
-import { useActionState } from "react"
-import { register } from "@/app/actions/auth"
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import Link from "next/link";
+import { GoogleIcon } from "./assets/google";
+import { GithubIcon } from "./assets/github";
+import { useActionState } from "react";
+import { register } from "@/app/actions/auth";
 
 export function RegisterForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const [state, action, pending] = useActionState(register, undefined)
+  const [state, action, pending] = useActionState(register, null);
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -45,7 +45,11 @@ export function RegisterForm({
                   defaultValue={state?.data?.name.toString() || ""}
                   required
                 />
-                {state?.errors?.name && <p className="font-sans text-muted-foreground text-sm">{state.errors.name}</p>}
+                {state?.errors?.name && (
+                  <p className="font-sans text-muted-foreground text-sm">
+                    {state.errors.name}
+                  </p>
+                )}
               </div>
               <div className="grid gap-3">
                 <Label htmlFor="email">Email</Label>
@@ -57,7 +61,11 @@ export function RegisterForm({
                   defaultValue={state?.data?.email.toString() || ""}
                   required
                 />
-                {state?.errors?.email && <p className="font-sans text-muted-foreground text-sm">{state.errors.email}</p>}
+                {state?.errors?.email && (
+                  <p className="font-sans text-muted-foreground text-sm">
+                    {state.errors.email}
+                  </p>
+                )}
               </div>
               <div className="grid gap-3">
                 <Label htmlFor="password">Password</Label>
@@ -66,25 +74,31 @@ export function RegisterForm({
                   name="password"
                   type="password"
                   defaultValue={state?.data?.password.toString() || ""}
-                  required />
+                  required
+                />
                 {state?.errors?.password && (
                   <div>
-                    <p className="font-sans text-muted-foreground text-sm">Password must:</p>
+                    <p className="font-sans text-muted-foreground text-sm">
+                      Password must:
+                    </p>
                     <ul>
                       {state.errors.password.map((error) => (
-                        <li key={error} className="font-sans text-muted-foreground text-sm">- {error}</li>
+                        <li
+                          key={error}
+                          className="font-sans text-muted-foreground text-sm"
+                        >
+                          - {error}
+                        </li>
                       ))}
                     </ul>
                   </div>
                 )}
               </div>
-              {
-                state?.error && (
-                  <p className="text-sm font-sans text-muted-foreground">
-                    {state.error}
-                  </p>
-                )
-              }
+              {state?.error && (
+                <p className="text-sm font-sans text-muted-foreground">
+                  {state.error}
+                </p>
+              )}
               <Button type="submit" disabled={pending} className="w-full">
                 Register
               </Button>
@@ -114,5 +128,5 @@ export function RegisterForm({
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

@@ -82,3 +82,22 @@ services:
         condition: service_started
       migrate:
         condition: service_completed_successfully
+
+  web:
+    build:
+      context: .
+      dockerfile: ./infra/Docker/web/Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./web/.env:/app/.env
+    depends_on:
+      - api
+    develop:
+      watch:
+        - action: sync
+          path: ./web
+          target: /app
+          ignore:
+            - node_modules
+            - .next

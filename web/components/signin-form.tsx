@@ -1,27 +1,27 @@
-"use client"
+"use client";
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import Link from "next/link"
-import { GoogleIcon } from "./assets/google"
-import { GithubIcon } from "./assets/github"
-import { useActionState } from "react"
-import { login } from "@/app/actions/auth"
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import Link from "next/link";
+import { GoogleIcon } from "./assets/google";
+import { GithubIcon } from "./assets/github";
+import { useActionState } from "react";
+import { login } from "@/app/actions/auth";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const [state, action, pending] = useActionState(login, undefined)
+  const [state, action, pending] = useActionState(login, null);
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -50,9 +50,11 @@ export function LoginForm({
                 <Input id="password" name="password" type="password" required />
               </div>
               {state?.error && (
-                <p className="text-sm font-sans text-muted-foreground">{state.error}</p>
+                <p className="text-sm font-sans text-muted-foreground">
+                  {state.error}
+                </p>
               )}
-              <Button type="submit" className="w-full">
+              <Button type="submit" disabled={pending} className="w-full">
                 Login
               </Button>
               <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
@@ -81,5 +83,5 @@ export function LoginForm({
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

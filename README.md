@@ -10,12 +10,12 @@
 
 ## Contributing
 
-- Currently, it has a docke compose file.
+- Currently, it has a docker compose file for local development.
 - Run it locally with
 
 ```
-docker compose up --build -d
-docker compose watch
+docker compose up --build
 ```
+Then press w to enable hot reloading.
 
-- Hot reloading is available in api.
+- Hot reloading is available in api & web.

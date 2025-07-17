@@ -1,2 +1,2 @@
-export { auth as middlware } from "./api/auth/[...nextauth]/route";
+export { auth as middlware } from "./auth";
 

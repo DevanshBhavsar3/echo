@@ -1,7 +1,6 @@
 import { ProgressChart } from "@/components/assets/progess-chart";
 import { RegisterForm } from "@/components/register-form";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { Card, CardContent } from "@/components/ui/card";
 
 export default function RegisterPage() {
   return (

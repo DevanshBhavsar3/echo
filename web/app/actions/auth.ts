@@ -7,7 +7,7 @@ import { API_URL } from "../constants";
 import { redirect } from "next/navigation";
 import { signIn } from "../auth";
 
-export async function register(prevState: any, formData: FormData) {
+export async function register(_: unknown, formData: FormData) {
   const parsedData = registerSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),
@@ -22,7 +22,7 @@ export async function register(prevState: any, formData: FormData) {
   }
 
   try {
-    await  || "An error occurred during registration.", xios.post(`${API_URL}/auth/register`, {
+    await axios.post(`${API_URL}/auth/register`, {
       ...parsedData.data,
       avatar: "https://api.dicebear.com/6.x/initials/svg?seed=" + parsedData.data.name,
     })
@@ -42,7 +42,7 @@ export async function register(prevState: any, formData: FormData) {
   redirect("/login")
 }
 
-export async function login(prevState: any, formData: FormData) {
+export async function login(_: unknown, formData: FormData) {
   const values = Object.fromEntries(formData.entries());
 
   const parsedData = loginSchema.safeParse({
