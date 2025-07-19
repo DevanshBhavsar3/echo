@@ -2,9 +2,13 @@ FROM golang:1.24-alpine AS build-stage
 
 WORKDIR /app
 
-COPY . .
+COPY go.* ./
+COPY ./worker/go.* ./worker/
+COPY ./common ./common
 
 RUN cd ./worker && go mod tidy
+
+COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./worker/bin/echo-worker ./worker/cmd/main.go
 

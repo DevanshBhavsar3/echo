@@ -1,6 +1,6 @@
 services:
   db:
-    image: timescale/timescaledb-ha:pg17
+    image: timescale/timescaledb:latest-pg17
     environment:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     ports:
@@ -98,6 +98,3 @@ services:
         - action: sync
           path: ./web
           target: /app
-          ignore:
-            - node_modules
-            - .next

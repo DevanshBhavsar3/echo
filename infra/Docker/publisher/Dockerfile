@@ -2,9 +2,13 @@ FROM golang:1.24-alpine AS build-stage
 
 WORKDIR /app
 
-COPY . .
+COPY go.* ./
+COPY ./publisher/go.* ./publisher/
+COPY ./common ./common
 
 RUN cd ./publisher && go mod tidy
+
+COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./publisher/bin/echo-publisher ./publisher/cmd/main.go
 

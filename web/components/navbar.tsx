@@ -3,13 +3,14 @@ import { Button } from "./ui/button";
 import Link from "next/link";
 import { ModeToggle } from "./theme-toggle";
 import { HeaderLine } from "./header-line";
+import { auth } from "@/app/auth";
 
-export function Navbar() {
+export async function Navbar() {
+  const user = await auth()
+
   return (
-    <div className="w-full fixed top-0 flex flex-col justify-center items-center">
-      <HeaderLine>
-        🎉 Echo just launched!! Get unlimited uptime monitoring without any credit card.
-      </HeaderLine>
+    <div className="w-full fixed top-0 flex flex-col justify-center items-center bg-background">
+      <HeaderLine />
       <nav className="py-4 px-2 flex flex-col md:flex-row w-full max-w-7xl items-center justify-between gap-6">
         <div className="flex w-full items-center gap-3">
           <Link href={"/"}>
@@ -31,18 +32,29 @@ export function Navbar() {
         </a>
         <ModeToggle />
 
-        <div className="flex items-center gap-3">
-          <Link href={"/login"}>
-            <Button size={"sm"} variant={"outline"}>
-              Login
-            </Button>
-          </Link>
-          <Link href={"/register"}>
-            <Button size={"sm"}>
-              Register
-            </Button>
-          </Link>
-        </div>
+        {
+          user?.user.id ? (
+            <Link href={"/dashboard"}>
+              <Button variant={"outline"}>
+                Dashboard
+              </Button>
+            </Link>
+          ) : (
+            <div className="flex items-center gap-3">
+              <Link href={"/login"}>
+                <Button variant={"outline"}>
+                  Login
+                </Button>
+              </Link>
+              <Link href={"/register"}>
+                <Button>
+                  Register
+                </Button>
+              </Link>
+            </div>
+          )
+        }
+
       </nav >
     </div>
   );
