@@ -45,6 +45,9 @@ services:
           ignore:
             - bin
             - tmp
+        - action: sync
+          path : ./common
+          target: /app/common
   
   publisher:
     build:

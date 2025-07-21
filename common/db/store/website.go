@@ -2,7 +2,6 @@ package store
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"time"
 
@@ -17,10 +16,6 @@ type Website struct {
 	Regions   []Region      `json:"regions"`
 	CreatedAt time.Time     `json:"created_at"`
 	CreatedBy string        `json:"created_by"`
-}
-
-func (w Website) MarshalBinary() ([]byte, error) {
-	return json.Marshal(w)
 }
 
 type WebsiteStorage struct {
@@ -156,6 +151,75 @@ func (s *WebsiteStorage) GetWebsiteByFrequency(ctx context.Context, freq string)
 	defer cancel()
 
 	rows, err := s.db.Query(ctx, query, freq)
+	if err != nil {
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			return nil, ErrNotFound
+		default:
+			return nil, err
+		}
+	}
+	defer rows.Close()
+
+	var websites []Website
+
+	for rows.Next() {
+		var w Website
+		var r Region
+
+		err = rows.Scan(
+			&w.ID,
+			&w.Url,
+			&w.Frequency,
+			&w.CreatedAt,
+			&w.CreatedBy,
+			&r.ID,
+			&r.Name,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(websites) > 0 {
+			lastWebsite := &websites[len(websites)-1]
+
+			if lastWebsite.ID == w.ID {
+				lastWebsite.Regions = append(lastWebsite.Regions, r)
+				continue
+			}
+		}
+
+		w.Regions = append(w.Regions, r)
+		websites = append(websites, w)
+	}
+
+	return websites, nil
+}
+
+func (s *WebsiteStorage) GetAllWebsites(ctx context.Context, userId string) ([]Website, error) {
+	query := `
+		SELECT 
+						w.id,
+						w.url,
+						w.frequency,
+						w.created_at,
+						w.created_by,
+						r.id,
+						r.name
+				FROM 
+						website w
+				LEFT JOIN 
+						website_region wr ON w.id = wr.website_id
+				LEFT JOIN 
+						region r ON wr.region_id = r.id
+				WHERE 
+						w.created_by = $1
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	rows, err := s.db.Query(ctx, query, userId)
 	if err != nil {
 		switch {
 		case errors.Is(err, pgx.ErrNoRows):

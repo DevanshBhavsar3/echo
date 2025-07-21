@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -81,6 +82,20 @@ func (h *WebsiteHandler) AddWebsite(c *fiber.Ctx) error {
 	return c.Status(http.StatusCreated).JSON(fiber.Map{
 		"id": id,
 	})
+}
+
+func (h *WebsiteHandler) GetAllWebsites(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(string)
+
+	websites, err := h.websiteStorage.GetAllWebsites(c.Context(), userID)
+	if err != nil && err != store.ErrNotFound {
+		fmt.Print("Error getting websites:", err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Error getting websites.",
+		})
+	}
+
+	return c.Status(http.StatusOK).JSON(websites)
 }
 
 func (h *WebsiteHandler) GetWebsiteById(c *fiber.Ctx) error {

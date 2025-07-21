@@ -40,5 +40,6 @@ func SetupRoutes(app *fiber.App, handlers handler.Handler) {
 	// Website routes
 	websiteRouter := v1Router.Group("/website", middleware.AuthMiddleware)
 	websiteRouter.Post("/", handlers.Website.AddWebsite)
+	websiteRouter.Get("/", handlers.Website.GetAllWebsites)
 	websiteRouter.Get("/:id", handlers.Website.GetWebsiteById)
 }

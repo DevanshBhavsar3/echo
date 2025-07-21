@@ -11,6 +11,7 @@ type Handler struct {
 	Website interface {
 		AddWebsite(c *fiber.Ctx) error
 		GetWebsiteById(c *fiber.Ctx) error
+		GetAllWebsites(c *fiber.Ctx) error
 	}
 	Auth interface {
 		Register(c *fiber.Ctx) error

@@ -36,9 +36,7 @@ func TestCreateWebsite(t *testing.T) {
 			t.Error(err)
 		}
 
-		if !assert.NotEmpty(t, data.Id) {
-			t.Error("expected website id")
-		}
+		assert.NotEmpty(t, data.Id, "expected website id")
 	})
 
 	t.Run("Fails to create website with incorrect data.", func(t *testing.T) {
@@ -95,7 +93,62 @@ func TestCreateWebsite(t *testing.T) {
 	})
 }
 
-func TestGetWebsite(t *testing.T) {
+func TestGetAllWebsites(t *testing.T) {
+	token := getToken(t, randomEmail)
+
+	tokenCookie := &http.Cookie{
+		Name:  "token",
+		Value: token,
+	}
+
+	t.Run("Get all websites for user.", func(t *testing.T) {
+		url := fmt.Sprintf("%v/api/v1/website", API_URL)
+
+		website := types.AddWebsiteBody{
+			Url:       "http://echo.test.com",
+			Frequency: "3m",
+			Regions:   []string{"IND"},
+		}
+
+		res := sendRequest(t, "POST", url, website, []*http.Cookie{tokenCookie})
+
+		var websiteData types.AddWebsiteResponse
+		err := json.Unmarshal(res, &websiteData)
+		if err != nil {
+			t.Error(err)
+		}
+
+		assert.NotEmpty(t, websiteData.Id, "expected website id")
+
+		url = fmt.Sprintf("%v/api/v1/website", API_URL)
+
+		res = sendRequest(t, "GET", url, nil, []*http.Cookie{tokenCookie})
+
+		var data []store.Website
+		err = json.Unmarshal(res, &data)
+		if err != nil {
+			t.Error(err)
+		}
+
+		assert.NotEmpty(t, data)
+	})
+
+	t.Run("Fails to get websites without token.", func(t *testing.T) {
+		url := fmt.Sprintf("%v/api/v1/website", API_URL)
+
+		res := sendRequest(t, "GET", url, nil, nil)
+
+		var data types.ErrorResponse
+		err := json.Unmarshal(res, &data)
+		if err != nil {
+			t.Error(err)
+		}
+
+		assert.Equal(t, "Token not provided.", data.Error)
+	})
+}
+
+func TestGetWebsiteById(t *testing.T) {
 	token := getToken(t, randomEmail)
 
 	tokenCookie := &http.Cookie{
