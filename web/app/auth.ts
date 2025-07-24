@@ -2,6 +2,7 @@ import axios, { AxiosError } from "axios";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { API_URL } from "./constants";
+import { cookies } from "next/headers";
 
 type user = {
   id: string;
@@ -34,13 +35,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: {}
       },
       async authorize(credentials) {
+        const cookiesStore = await cookies();
+
         try {
           const response = await axios.post(`${API_URL}/auth/login`, {
             email: credentials.email,
             password: credentials.password
           });
 
-          if (response.data && response.data.token) {
+          if (response.data.token) {
+            cookiesStore.set("token", response.data.token)
             return response.data
           }
 

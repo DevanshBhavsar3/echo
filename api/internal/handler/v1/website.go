@@ -17,12 +17,14 @@ import (
 type WebsiteHandler struct {
 	websiteStorage store.WebsiteStorage
 	regionStorage  store.RegionStorage
+	tickStorage    store.WebsiteTickStorage
 }
 
-func NewWebsiteHandler(websiteStorage store.WebsiteStorage, regionStorage store.RegionStorage) *WebsiteHandler {
+func NewWebsiteHandler(websiteStorage store.WebsiteStorage, regionStorage store.RegionStorage, tickStorage store.WebsiteTickStorage) *WebsiteHandler {
 	return &WebsiteHandler{
 		websiteStorage,
 		regionStorage,
+		tickStorage,
 	}
 }
 
@@ -89,13 +91,38 @@ func (h *WebsiteHandler) GetAllWebsites(c *fiber.Ctx) error {
 
 	websites, err := h.websiteStorage.GetAllWebsites(c.Context(), userID)
 	if err != nil && err != store.ErrNotFound {
-		fmt.Print("Error getting websites:", err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Error getting websites.",
 		})
 	}
 
-	return c.Status(http.StatusOK).JSON(websites)
+	var response types.GetAllWebsitesResponse
+
+	for _, w := range websites {
+		ticks, err := h.tickStorage.GetLatestStatus(c.Context(), w.ID)
+		if err != nil {
+			fmt.Println(err)
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Error getting statues for website.",
+			})
+		}
+
+		website := types.WebsiteWithTicks{
+			ID:        w.ID,
+			Url:       w.Url,
+			Frequency: w.Frequency.String(),
+			CreatedAt: w.CreatedAt.Format(time.RFC3339),
+			Ticks:     ticks,
+		}
+
+		for _, r := range w.Regions {
+			website.Regions = append(website.Regions, r.Name)
+		}
+
+		response = append(response, website)
+	}
+
+	return c.Status(http.StatusOK).JSON(response)
 }
 
 func (h *WebsiteHandler) GetWebsiteById(c *fiber.Ctx) error {

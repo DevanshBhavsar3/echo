@@ -203,8 +203,6 @@ func (s *WebsiteStorage) GetAllWebsites(ctx context.Context, userId string) ([]W
 						w.url,
 						w.frequency,
 						w.created_at,
-						w.created_by,
-						r.id,
 						r.name
 				FROM 
 						website w
@@ -223,7 +221,7 @@ func (s *WebsiteStorage) GetAllWebsites(ctx context.Context, userId string) ([]W
 	if err != nil {
 		switch {
 		case errors.Is(err, pgx.ErrNoRows):
-			return nil, ErrNotFound
+			return []Website{}, nil
 		default:
 			return nil, err
 		}
@@ -241,8 +239,6 @@ func (s *WebsiteStorage) GetAllWebsites(ctx context.Context, userId string) ([]W
 			&w.Url,
 			&w.Frequency,
 			&w.CreatedAt,
-			&w.CreatedBy,
-			&r.ID,
 			&r.Name,
 		)
 		if err != nil {

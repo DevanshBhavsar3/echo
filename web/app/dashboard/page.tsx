@@ -2,31 +2,32 @@ import { DashboardHeader } from "@/components/dashboard/header";
 import { DataTable, Monitors } from "./data-table";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
+import { auth } from "../auth";
+import { redirect } from "next/navigation";
+import { API_URL } from "../constants";
+import axios from "axios";
 
-export default function DashboardPage() {
-  const data: Monitors[] = [
-    {
-      id: "1",
-      website: "https://example.com",
-      status: "up",
-      uptime: ["up", "up", "down", "up", "unknown"],
-      lastChecked: "2023-10-01 12:00",
-    },
-    {
-      id: "2",
-      website: "https://another-example.com",
-      status: "down",
-      uptime: ["down", "down", "up", "unknown", "processing"],
-      lastChecked: "2023-10-01 12:05",
-    },
-    {
-      id: "3",
-      website: "https://yet-another-example.com",
-      status: "unknown",
-      uptime: ["unknown", "up", "down", "up", "processing"],
-      lastChecked: "2023-10-01 12:10",
-    },
-  ];
+export default async function DashboardPage() {
+  const user = await auth()
+
+  if (!user?.user.id) {
+    return redirect("/login");
+  }
+
+  let data: Monitors[] = [];
+
+  try {
+    const res = await axios.get(`${API_URL}/website`, {
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+    })
+
+    data = res.data;
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    redirect("/error")
+  }
 
   return (
     <SidebarProvider>
@@ -40,3 +41,5 @@ export default function DashboardPage() {
     </SidebarProvider>
   );
 }
+
+export const revalidate = 30000;

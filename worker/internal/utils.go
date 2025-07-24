@@ -2,22 +2,19 @@ package internal
 
 import (
 	"net/http"
-	"net/http/httptrace"
 	"time"
 
 	"github.com/DevanshBhavsar3/echo/common/db/store"
 )
 
 func Ping(url string) (status store.WebsiteStatus, responseTime int64) {
-	req, _ := http.NewRequest("HEAD", url, nil)
-	req.Header.Set("User-Agent", "Echo-Monitor/1.0")
-
-	trace := &httptrace.ClientTrace{}
-	req = req.WithContext(httptrace.WithClientTrace(req.Context(), trace))
+	client := &http.Client{
+		Timeout: time.Second * 2,
+	}
 
 	start := time.Now()
 
-	res, err := http.DefaultTransport.RoundTrip(req)
+	res, err := client.Head(url)
 	if err != nil {
 		status = store.Down
 		responseTime = time.Since(start).Milliseconds()

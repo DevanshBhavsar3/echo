@@ -2,6 +2,7 @@ package redisClient
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -96,6 +97,7 @@ func (r RedisClient) XReadGroup(ctx context.Context, stream string, group string
 
 	if err != nil {
 		if err == redis.Nil {
+			fmt.Println("Redis stream is empty.")
 			return []redis.XStream{}
 		}
 

@@ -3,27 +3,36 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { DropdownMenuTrigger, DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { DropdownMenuTrigger, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
+import ReactCountryFlag from "react-country-flag";
+import { useEffect, useState } from "react";
+
+export type Tick = {
+  time: string
+  status: string;
+}
 
 export type Monitors = {
   id: string;
-  website: string;
-  status: "up" | "down" | "unknown" | "processing";
-  uptime: Array<"up" | "down" | "unknown" | "processing">;
-  lastChecked: string;
+  url: string;
+  frequency: number;
+  regions: string[];
+  createdAt: string;
+  ticks: Tick[];
 }
 
 export const columns: ColumnDef<Monitors>[] = [
   {
-    accessorKey: "website",
-    header: "Website",
+    accessorKey: "url",
+    header: "Url",
   },
   {
-    accessorKey: "status",
+    id: "status",
     header: "Status",
     cell: ({ row }) => {
-      const status = row.getValue("status") as string;
+      const ticks = row.getValue("ticks") as Tick[];
+      const status = ticks[ticks.length - 1].status;
 
       return (
         <div>
@@ -33,20 +42,20 @@ export const columns: ColumnDef<Monitors>[] = [
     },
   },
   {
-    accessorKey: "uptime",
+    accessorKey: "ticks",
     header: "Uptime",
     cell: ({ row }) => {
-      const uptime = row.getValue("uptime") as string[];
+      const ticks = row.getValue("ticks") as Tick[];
 
       return (
         <div className="flex items-center gap-1">
           {
-            uptime.map((status, index) => {
-              if (status == "up") {
+            ticks.map((tick, index) => {
+              if (tick.status == "up") {
                 return <span className="bg-green-400 h-full w-4 p-1" key={index}></span>
-              } else if (status == "down") {
+              } else if (tick.status == "down") {
                 return <span className="bg-red-400 h-full w-4 p-1" key={index}></span>
-              } else if (status == "unknown") {
+              } else if (tick.status == "unknown") {
                 return <span className="bg-yellow-400 h-full w-4 p-1" key={index}></span>
               }
               return <span className="bg-gray-400 h-full w-4 p-1" key={index}></span>
@@ -57,14 +66,74 @@ export const columns: ColumnDef<Monitors>[] = [
     },
   },
   {
+    accessorKey: "frequency",
+    header: "Frequency",
+  },
+  {
+    accessorKey: "regions",
+    header: "Regions",
+    cell: ({ row }) => {
+      const regions = row.getValue("regions") as string[];
+
+
+      return (
+        <div className="flex items-center gap-1">
+          {regions.map((region, index) => (
+            <ReactCountryFlag
+              key={index}
+              countryCode={region.toUpperCase()}
+              svg
+            />
+          ))}
+        </div>
+      );
+    },
+  },
+  {
     accessorKey: "lastChecked",
     header: "Last Checked",
+    cell: ({ row }) => {
+      const [currentTime, setCurrentTime] = useState(Date.now());
+
+      useEffect(() => {
+        const interval = setInterval(() => {
+          setCurrentTime(Date.now());
+        }, 1000);
+
+        return () => clearInterval(interval);
+      }, []);
+
+      const ticks = row.getValue("ticks") as Tick[];
+
+      if (ticks.length === 0) {
+        return <div>No data</div>;
+      }
+
+      const lastTick = ticks[0];
+
+      const lastTickTime = Date.parse(lastTick.time);
+      const elapsedMilliseconds = currentTime - lastTickTime;
+
+      const elapsedSeconds = Math.floor(elapsedMilliseconds / 1000);
+      const elapsedMinutes = Math.floor(elapsedSeconds / 60);
+
+      let displayTime;
+      if (elapsedMinutes > 0) {
+        displayTime = `${elapsedMinutes} minute(s) ago`;
+      } else {
+        displayTime = `${elapsedSeconds} second(s) ago`;
+      }
+
+      return (
+        <div>
+          {displayTime}
+        </div>
+      );
+    },
   },
   {
     id: "actions",
     cell: ({ row }) => {
-      const monitor = row.original
-
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

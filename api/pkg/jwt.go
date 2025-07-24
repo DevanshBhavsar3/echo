@@ -16,7 +16,7 @@ var (
 
 func init() {
 	JWT_SECRET = config.Get("JWT_SECRET")
-	Exp = time.Minute * 5
+	Exp = time.Hour * 3
 	Iss = "echo-api"
 }
 

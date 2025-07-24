@@ -26,8 +26,8 @@ func StartInterval(ctx context.Context, storage store.Storage, client redisClien
 	}
 }
 
-func AddWebsite(ctx context.Context, store store.Storage, client redisClient.RedisClient, freq string) {
-	websites, err := store.Website.GetWebsiteByFrequency(ctx, freq)
+func AddWebsite(ctx context.Context, storage store.Storage, client redisClient.RedisClient, freq string) {
+	websites, err := storage.Website.GetWebsiteByFrequency(ctx, freq)
 	if err != nil {
 		log.Printf("Failed to get websites data:\n%v", err)
 		return
@@ -36,12 +36,22 @@ func AddWebsite(ctx context.Context, store store.Storage, client redisClient.Red
 	log.Printf("Publishing %d websites for frequency %s", len(websites), freq)
 
 	for _, w := range websites {
-		data, err := json.Marshal(w)
+		minimalWebsite := store.Website{
+			ID:      w.ID,
+			Url:     w.Url,
+			Regions: w.Regions,
+		}
+
+		data, err := json.Marshal(minimalWebsite)
 		if err != nil {
 			log.Printf("failed to marshal website:\n%v", err)
 			continue
 		}
 
-		client.XAdd(ctx, redisClient.WebsiteStream, data)
+		err = client.XAdd(ctx, redisClient.WebsiteStream, data)
+		if err != nil {
+			log.Printf("failed to add website to stream:\n%v", err)
+			continue
+		}
 	}
 }

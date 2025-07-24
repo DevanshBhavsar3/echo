@@ -80,7 +80,8 @@ func main() {
 
 				encodedTick, err := json.Marshal(tick)
 				if err != nil {
-					log.Fatalf("error marshaling tick:\n%v", err)
+					log.Printf("error marshaling tick:\n%v", err)
+					continue
 				}
 
 				// Add the tick to database stream

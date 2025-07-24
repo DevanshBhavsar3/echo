@@ -25,6 +25,6 @@ func NewHandler(db *pgxpool.Pool) Handler {
 	store := store.NewStorage(db)
 
 	return Handler{
-		Website: NewWebsiteHandler(store.Website, store.Region),
+		Website: NewWebsiteHandler(store.Website, store.Region, store.WebsiteTick),
 		Auth:    NewAuthHandler(store.User)}
 }
