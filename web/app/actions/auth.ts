@@ -6,12 +6,9 @@ import { AuthError } from "next-auth";
 import { API_URL } from "../constants";
 import { redirect } from "next/navigation";
 import { signIn } from "../auth";
-import { cookies } from "next/headers";
 
 
 export async function register(_: unknown, formData: FormData) {
-  const cookiesStore = await cookies()
-
   const parsedData = registerSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),
@@ -26,12 +23,10 @@ export async function register(_: unknown, formData: FormData) {
   }
 
   try {
-    const res = await axios.post(`${API_URL}/auth/register`, {
+    await axios.post(`${API_URL}/auth/register`, {
       ...parsedData.data,
       avatar: "https://api.dicebear.com/6.x/initials/svg?seed=" + parsedData.data.name,
     })
-
-    cookiesStore.set("token", res.data?.token)
   } catch (error) {
     if (error instanceof AxiosError) {
       return {

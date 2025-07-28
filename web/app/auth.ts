@@ -2,7 +2,6 @@ import axios, { AxiosError } from "axios";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { API_URL } from "./constants";
-import { cookies } from "next/headers";
 
 type user = {
   id: string;
@@ -27,6 +26,7 @@ declare module "next-auth" {
 export const { handlers, signIn, signOut, auth } = NextAuth({
   session: {
     strategy: 'jwt',
+    maxAge: 3 * 60 * 60
   },
   providers: [
     Credentials({
@@ -35,8 +35,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: {}
       },
       async authorize(credentials) {
-        const cookiesStore = await cookies();
-
         try {
           const response = await axios.post(`${API_URL}/auth/login`, {
             email: credentials.email,
@@ -44,7 +42,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           });
 
           if (response.data.token) {
-            cookiesStore.set("token", response.data.token)
             return response.data
           }
 

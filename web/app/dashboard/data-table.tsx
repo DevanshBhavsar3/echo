@@ -7,6 +7,7 @@ import { DropdownMenuTrigger, DropdownMenu, DropdownMenuContent, DropdownMenuIte
 import { MoreHorizontal } from "lucide-react";
 import ReactCountryFlag from "react-country-flag";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export type Tick = {
   time: string
@@ -32,6 +33,11 @@ export const columns: ColumnDef<Monitors>[] = [
     header: "Status",
     cell: ({ row }) => {
       const ticks = row.getValue("ticks") as Tick[];
+
+      if (ticks == null || ticks.length === 0) {
+        return <div className="text-gray-500">Unknown</div>;
+      }
+
       const status = ticks[ticks.length - 1].status;
 
       return (
@@ -47,8 +53,12 @@ export const columns: ColumnDef<Monitors>[] = [
     cell: ({ row }) => {
       const ticks = row.getValue("ticks") as Tick[];
 
+      if (ticks == null || ticks.length === 0) {
+        return <span className="bg-gray-400 h-full w-4 p-1" />
+      }
+
       return (
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 h-full">
           {
             ticks.map((tick, index) => {
               if (tick.status == "up") {
@@ -68,6 +78,20 @@ export const columns: ColumnDef<Monitors>[] = [
   {
     accessorKey: "frequency",
     header: "Frequency",
+    cell: ({ row }) => {
+      const frequency = (row.getValue("frequency") as number) / 1000;
+      const displayFrequency = frequency < 60 ? `${frequency} seconds` : `${Math.floor(frequency / 60)} minutes`;
+
+      return (
+        <span>
+          {
+            <span>
+              {displayFrequency}
+            </span>
+          }
+        </span>
+      );
+    },
   },
   {
     accessorKey: "regions",
@@ -93,40 +117,39 @@ export const columns: ColumnDef<Monitors>[] = [
     accessorKey: "lastChecked",
     header: "Last Checked",
     cell: ({ row }) => {
-      const [currentTime, setCurrentTime] = useState(Date.now());
+      const ticks = row.getValue("ticks") as Tick[];
+      const createdAt = row.original.createdAt;
+      const [elapsedTime, setElapsedTime] = useState(0);
 
       useEffect(() => {
         const interval = setInterval(() => {
-          setCurrentTime(Date.now());
+          let elapsedTime;
+
+          if (!ticks || ticks.length === 0) {
+            elapsedTime = Math.floor((Date.now() - new Date(createdAt).getTime()) / 1000);
+          } else {
+            elapsedTime = Math.floor((Date.now() - new Date(ticks[0].time).getTime()) / 1000);
+          }
+
+          setElapsedTime(elapsedTime);
         }, 1000);
 
         return () => clearInterval(interval);
-      }, []);
-
-      const ticks = row.getValue("ticks") as Tick[];
-
-      if (ticks.length === 0) {
-        return <div>No data</div>;
-      }
-
-      const lastTick = ticks[0];
-
-      const lastTickTime = Date.parse(lastTick.time);
-      const elapsedMilliseconds = currentTime - lastTickTime;
-
-      const elapsedSeconds = Math.floor(elapsedMilliseconds / 1000);
-      const elapsedMinutes = Math.floor(elapsedSeconds / 60);
-
-      let displayTime;
-      if (elapsedMinutes > 0) {
-        displayTime = `${elapsedMinutes} minute(s) ago`;
-      } else {
-        displayTime = `${elapsedSeconds} second(s) ago`;
-      }
+      }, [ticks]);
 
       return (
         <div>
-          {displayTime}
+          {
+            Math.floor(elapsedTime / 60) > 0 ? (
+              <span>
+                {Math.floor(elapsedTime / 60)} minute(s) ago
+              </span>
+            ) : (
+              <span>
+                {Math.floor(elapsedTime % 3600)} second(s) ago
+              </span>
+            )
+          }
         </div>
       );
     },
@@ -163,6 +186,17 @@ export function DataTable({
     columns,
     getCoreRowModel: getCoreRowModel(),
   })
+  const router = useRouter();
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      router.refresh();
+    }, 30000); // Refresh every 30 seconds
+
+    return () => clearInterval(timer);
+  });
+
+
 
   return (
     <div className="border">

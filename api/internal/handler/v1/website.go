@@ -100,6 +100,7 @@ func (h *WebsiteHandler) GetAllWebsites(c *fiber.Ctx) error {
 
 	for _, w := range websites {
 		ticks, err := h.tickStorage.GetLatestStatus(c.Context(), w.ID)
+
 		if err != nil {
 			fmt.Println(err)
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
@@ -110,7 +111,7 @@ func (h *WebsiteHandler) GetAllWebsites(c *fiber.Ctx) error {
 		website := types.WebsiteWithTicks{
 			ID:        w.ID,
 			Url:       w.Url,
-			Frequency: w.Frequency.String(),
+			Frequency: w.Frequency.Milliseconds(),
 			CreatedAt: w.CreatedAt.Format(time.RFC3339),
 			Ticks:     ticks,
 		}

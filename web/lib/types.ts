@@ -28,3 +28,16 @@ export const loginSchema = z.object({
     .string()
     .trim(),
 })
+
+export const createWebsiteSchema = z.object({
+  url: z
+    .string()
+    .url("Please enter a valid URL.")
+    .trim(),
+  frequency: z
+    .string()
+    .min(1, "Frequency is required."),
+  regions: z
+    .array(z.string())
+    .min(1, "At least one region must be selected."),
+})

@@ -1,6 +1,7 @@
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
 import { SidebarTrigger } from "../ui/sidebar";
+import { AddMonitorDialog } from "./dialog";
 
 export function DashboardHeader() {
   return (
@@ -13,9 +14,7 @@ export function DashboardHeader() {
         />
         <h1 className="text-base font-medium font-sans">Monitors</h1>
         <div className="ml-auto flex items-center gap-2">
-          <Button size="sm" className="hidden sm:flex">
-            Add Monitor
-          </Button>
+          <AddMonitorDialog />
         </div>
       </div>
     </header>
