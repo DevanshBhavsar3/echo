@@ -153,3 +153,94 @@ func (h *WebsiteHandler) GetWebsiteById(c *fiber.Ctx) error {
 
 	return c.Status(http.StatusOK).JSON(website)
 }
+
+func (h *WebsiteHandler) DeleteWebsite(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(string)
+	websiteId := c.Params("id")
+
+	err := uuid.Validate(websiteId)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid website id.",
+		})
+	}
+
+	err = h.websiteStorage.DeleteWebsite(c.Context(), websiteId, userID)
+	if err != nil {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+				"error": "Website not found.",
+			})
+		default:
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Error deleting website.",
+			})
+		}
+	}
+
+	return c.SendStatus(http.StatusNoContent)
+}
+
+func (h *WebsiteHandler) UpdateWebsite(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(string)
+	var body types.UpdateWebsiteBody
+
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": "Failed to parse body.",
+		})
+	}
+
+	if err := pkg.Validate.Struct(body); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid body.",
+		})
+	}
+
+	freq, err := time.ParseDuration(body.Frequency)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid frequency.",
+		})
+	}
+
+	updatedWebsite := store.Website{
+		ID:        body.ID,
+		Url:       body.Url,
+		Frequency: freq,
+	}
+	for _, r := range body.Regions {
+		region, err := h.regionStorage.GetRegionByName(c.Context(), r)
+		if err != nil {
+			switch {
+			case errors.Is(err, store.ErrNotFound):
+				return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+					"error": "Invalid region provided.",
+				})
+			default:
+				return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+					"error": "Failed to get regions.",
+				})
+			}
+		}
+
+		updatedWebsite.Regions = append(updatedWebsite.Regions, *region)
+	}
+
+	err = h.websiteStorage.UpdateWebsite(c.Context(), updatedWebsite, userID)
+	if err != nil {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+				"error": "Website not found.",
+			})
+		default:
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Error updating website.",
+			})
+		}
+	}
+
+	return c.SendStatus(http.StatusNoContent)
+}

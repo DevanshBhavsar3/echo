@@ -25,10 +25,12 @@ export default async function DashboardPage() {
 
     data = res.data as Monitors[] || [];
 
-    data = res.data.map((item: Monitors) => ({
-      ...item,
-      ticks: item.ticks.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
-    }));
+    if (data.length > 0) {
+      data = data.map((item: Monitors) => ({
+        ...item,
+        ticks: item.ticks?.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+      }));
+    }
 
   } catch (error) {
     console.error("Error fetching data:", error);

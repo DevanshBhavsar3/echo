@@ -23,6 +23,17 @@ export function AddMonitorDialog() {
   const [state, action, pending] = useActionState(createWebsite, null);
   const [urlState, urlAction, urlPending] = useActionState(pingWebsite, null);
 
+  const [url, setUrl] = useState("https://");
+  const debouncedUrl = useDebounce(url, 500);
+
+  useEffect(() => {
+    if (debouncedUrl && debouncedUrl !== "https://") {
+      startTransition(() => {
+        urlAction(debouncedUrl);
+      });
+    }
+  }, [debouncedUrl, urlAction]);
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -47,30 +58,30 @@ export function AddMonitorDialog() {
                   id="url"
                   type="text"
                   name="url"
-                  defaultValue={"https://"}
+                  value={url}
                   placeholder="https://example.com"
                   required
-                  onBlur={(e) => startTransition(() => {
-                    const url = e.target.value;
-                    if (url) {
-                      urlAction(url);
-                    }
-                  })}
+                  onChange={(e) => {
+                    setUrl(e.target.value);
+                  }}
                 />
 
-                <span className="absolute right-3">
-                  {
-                    urlPending ? (
-                      <LoaderCircle size={18} className="animate-spin opacity-50" />
-                    ) :
-                      urlState?.status ? (
-                        <CircleCheckBig size={18} className="text-green-500" />
-                      ) : (
-                        <CircleX size={18} className="text-red-500" />
-                      )
-                  }
-
-                </span>
+                {url && url !== "https://" ? (
+                  <span className="absolute right-3">
+                    {
+                      urlPending ? (
+                        <LoaderCircle size={18} className="animate-spin opacity-50" />
+                      ) :
+                        urlState?.status ? (
+                          <CircleCheckBig size={18} className="text-green-500" />
+                        ) : (
+                          <CircleX size={18} className="text-red-500" />
+                        )
+                    }
+                  </span>
+                ) :
+                  null
+                }
 
               </div>
               {state?.errors?.url && (
@@ -98,6 +109,7 @@ export function AddMonitorDialog() {
               </Select>
             </div>
             <div className="grid gap-3">
+              {/* TODO: get regions from API */}
               <Label htmlFor="regions">Regions</Label>
               <div className="flex items-start gap-3">
                 <Checkbox name="regions" value="IN" defaultChecked />
@@ -106,6 +118,13 @@ export function AddMonitorDialog() {
                   svg
                 />
               </div>
+              {
+                state?.errors?.regions && (
+                  <p className="font-sans text-muted-foreground text-sm">
+                    {state.errors.regions}
+                  </p>
+                )
+              }
             </div>
             {state?.error && (
               <p className="text-sm font-sans text-muted-foreground">

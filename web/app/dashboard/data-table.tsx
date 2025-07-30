@@ -196,8 +196,6 @@ export function DataTable({
     return () => clearInterval(timer);
   });
 
-
-
   return (
     <div className="border">
       <Table>

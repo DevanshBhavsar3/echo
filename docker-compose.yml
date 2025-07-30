@@ -37,6 +37,11 @@ services:
         condition: service_completed_successfully
     volumes:
       - .env:/app/api/.env
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3001/health"]
+      interval: 10s
+      retries: 5
+      timeout: 5s
     develop:
       watch:
         - action: sync
@@ -45,7 +50,7 @@ services:
           ignore:
             - bin
             - tmp
-        - action: restart
+        - action: rebuild
           path : ./common
           target: /app/common
         - action: rebuild
@@ -97,9 +102,13 @@ services:
     volumes:
       - ./web/.env:/app/.env
     depends_on:
-      - api
+      api: 
+        condition: service_healthy
     develop:
       watch:
         - action: sync
           path: ./web
           target: /app
+        - action: rebuild
+          path: ./web/package.json
+          target: /app/package.json

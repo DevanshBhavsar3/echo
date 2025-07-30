@@ -260,3 +260,77 @@ func (s *WebsiteStorage) GetAllWebsites(ctx context.Context, userId string) ([]W
 
 	return websites, nil
 }
+
+func (s *WebsiteStorage) DeleteWebsite(ctx context.Context, id string, userId string) error {
+	tx, err := s.db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	websiteRegionQuery := `
+		DELETE FROM 
+			website_region
+		WHERE 
+			website_id IN (SELECT id FROM website WHERE id = $1 AND created_by = $2)
+	`
+	websiteTickQuery := `
+		DELETE FROM 
+			website_tick
+		WHERE 
+			website_id IN (SELECT id FROM website WHERE id = $1 AND created_by = $2)
+	`
+
+	websiteQuery := `
+		DELETE FROM 
+			website 
+		WHERE 
+			id = $1 AND created_by = $2
+	`
+	queries := []string{
+		websiteRegionQuery,
+		websiteTickQuery,
+		websiteQuery,
+	}
+
+	for _, query := range queries {
+		queryCtx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+		defer cancel()
+
+		_, err := tx.Exec(queryCtx, query, id, userId)
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return ErrNotFound
+			}
+			return err
+		}
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *WebsiteStorage) UpdateWebsite(ctx context.Context, w Website, userId string) error {
+	query := `
+		UPDATE 
+			website 
+		SET 
+			url = $1, frequency = $2
+		WHERE 
+			id = $3 AND created_by = $4
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	_, err := s.db.Exec(ctx, query, w.Url, w.Frequency, w.ID, userId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

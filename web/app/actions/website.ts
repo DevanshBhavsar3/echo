@@ -27,8 +27,6 @@ export async function createWebsite(_: unknown, formData: FormData) {
     };
   }
 
-  console.log("Parsed Data:", parsedData.data);
-
   try {
     await axios.post(`${API_URL}/website`, parsedData.data, {
       headers: {
