@@ -8,6 +8,9 @@ import { MoreHorizontal } from "lucide-react";
 import ReactCountryFlag from "react-country-flag";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { deleteWebsite, editWebsite } from "../actions/website";
+import { DialogBox } from "@/components/dashboard/dialog";
+import { DialogTrigger } from "@/components/ui/dialog";
 
 export type Tick = {
   time: string
@@ -17,7 +20,7 @@ export type Tick = {
 export type Monitors = {
   id: string;
   url: string;
-  frequency: number;
+  frequency: string;
   regions: string[];
   createdAt: string;
   ticks: Tick[];
@@ -78,20 +81,6 @@ export const columns: ColumnDef<Monitors>[] = [
   {
     accessorKey: "frequency",
     header: "Frequency",
-    cell: ({ row }) => {
-      const frequency = (row.getValue("frequency") as number) / 1000;
-      const displayFrequency = frequency < 60 ? `${frequency} seconds` : `${Math.floor(frequency / 60)} minutes`;
-
-      return (
-        <span>
-          {
-            <span>
-              {displayFrequency}
-            </span>
-          }
-        </span>
-      );
-    },
   },
   {
     accessorKey: "regions",
@@ -157,20 +146,33 @@ export const columns: ColumnDef<Monitors>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
+      const monitor = row.original;
+
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem>Edit</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu >
+        <DialogBox
+          label={"Edit Monitor"}
+          description={"Edit your monitor configuration."}
+          data={monitor}
+          onSubmitAction={(_: unknown, formData: FormData) => editWebsite(monitor.id, formData)}
+        >
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem>
+                <DialogTrigger className="w-full text-left">
+                  Edit
+                </DialogTrigger>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem variant="destructive" onClick={() => deleteWebsite(monitor.id)}>Delete</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu >
+        </DialogBox >
       )
     },
   }

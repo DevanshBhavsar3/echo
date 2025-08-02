@@ -111,7 +111,7 @@ func (h *WebsiteHandler) GetAllWebsites(c *fiber.Ctx) error {
 		website := types.WebsiteWithTicks{
 			ID:        w.ID,
 			Url:       w.Url,
-			Frequency: w.Frequency.Milliseconds(),
+			Frequency: pkg.ShortDuration(w.Frequency),
 			CreatedAt: w.CreatedAt.Format(time.RFC3339),
 			Ticks:     ticks,
 		}
@@ -184,6 +184,8 @@ func (h *WebsiteHandler) DeleteWebsite(c *fiber.Ctx) error {
 
 func (h *WebsiteHandler) UpdateWebsite(c *fiber.Ctx) error {
 	userID := c.Locals("userID").(string)
+	websiteId := c.Params("id")
+
 	var body types.UpdateWebsiteBody
 
 	if err := c.BodyParser(&body); err != nil {
@@ -206,7 +208,7 @@ func (h *WebsiteHandler) UpdateWebsite(c *fiber.Ctx) error {
 	}
 
 	updatedWebsite := store.Website{
-		ID:        body.ID,
+		ID:        websiteId,
 		Url:       body.Url,
 		Frequency: freq,
 	}

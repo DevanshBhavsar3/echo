@@ -1,6 +1,6 @@
 "use server";
 
-import { createWebsiteSchema } from "@/lib/types";
+import { websiteSchema } from "@/lib/types";
 import axios, { AxiosError } from "axios";
 import { API_URL } from "../constants";
 import { auth } from "../auth";
@@ -14,14 +14,13 @@ export async function createWebsite(_: unknown, formData: FormData) {
     redirect("/login");
   }
 
-  const parsedData = createWebsiteSchema.safeParse({
+  const parsedData = websiteSchema.safeParse({
     url: formData.get("url"),
     frequency: formData.get("frequency"),
     regions: formData.getAll("regions") as string[],
   });
 
   if (!parsedData.success) {
-    console.error("Validation Errors:", parsedData.error.flatten().fieldErrors);
     return {
       errors: parsedData.error.flatten().fieldErrors,
     };
@@ -48,9 +47,68 @@ export async function createWebsite(_: unknown, formData: FormData) {
   }
 }
 
+export async function deleteWebsite(id: string) {
+  const user = await auth();
+
+  if (!user?.token) {
+    redirect("/login");
+  }
+
+  try {
+    await axios.delete(`${API_URL}/website/${id}`, {
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+    });
+
+    revalidatePath("/dashboard");
+  } catch (error) {
+  }
+}
+
+export async function editWebsite(websiteId: string, formData: FormData) {
+  const user = await auth();
+
+  if (!user?.token) {
+    redirect("/login");
+  }
+
+  const parsedData = websiteSchema.safeParse({
+    url: formData.get("url"),
+    frequency: formData.get("frequency"),
+    regions: formData.getAll("regions") as string[],
+  });
+
+  if (!parsedData.success) {
+    return {
+      errors: parsedData.error.flatten().fieldErrors,
+    };
+  }
+
+  try {
+    await axios.put(`${API_URL}/website/${websiteId}`, parsedData.data, {
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+    });
+
+    revalidatePath("/dashboard");
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return {
+        error: error.response?.data?.error || "An error occurred while editing the website.",
+      }
+    }
+
+    return {
+      error: "An unexpected error occurred while editing the website.",
+    }
+  }
+}
+
 export async function pingWebsite(_: unknown, url: string) {
   try {
-    const res = await axios.head(url, {
+    await axios.head(url, {
       withCredentials: false,
       timeout: 5000,
     })

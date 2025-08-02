@@ -2,28 +2,39 @@
 
 import { Label } from "../ui/label";
 import { Button } from "../ui/button";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Input } from "../ui/input";
 import { Checkbox } from "../ui/checkbox";
 import ReactCountryFlag from "react-country-flag";
-import { createWebsite, pingWebsite } from "@/app/actions/website";
+import { pingWebsite } from "@/app/actions/website";
 import { startTransition, useActionState, useEffect, useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { useDebounce } from "@/hooks/use-debounce";
 import { CircleCheckBig, CircleX, LoaderCircle } from "lucide-react";
+import { Monitors } from "@/app/dashboard/data-table";
 
 const frequencies = [
   { value: "30s", label: "30 Seconds" },
   { value: "1m", label: "1 Minute" },
-  { value: "3m", label: "3 Minutes", default: true },
+  { value: "3m", label: "3 Minutes" },
   { value: "5m", label: "5 Minutes" },
 ];
 
-export function AddMonitorDialog() {
-  const [state, action, pending] = useActionState(createWebsite, null);
+interface DialogProps {
+  label: string;
+  description?: string;
+  data?: Monitors;
+  onSubmitAction: (_: unknown, formData: FormData) => Promise<any>;
+  children?: React.ReactNode;
+}
+
+export function DialogBox({ label, description, data, onSubmitAction, children }: DialogProps) {
+  const [open, setOpen] = useState(false);
+
+  const [state, action, pending] = useActionState(onSubmitAction, null);
   const [urlState, urlAction, urlPending] = useActionState(pingWebsite, null);
 
-  const [url, setUrl] = useState("https://");
+  const [url, setUrl] = useState(data?.url || "https://");
   const debouncedUrl = useDebounce(url, 500);
 
   useEffect(() => {
@@ -35,17 +46,13 @@ export function AddMonitorDialog() {
   }, [debouncedUrl, urlAction]);
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button size="sm" className="hidden sm:flex">
-          Add Monitor
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={setOpen}>
+      {children}
       <DialogContent>
         <DialogHeader className="font-sans">
-          <DialogTitle>Add Monitor</DialogTitle>
+          <DialogTitle>{label}</DialogTitle>
           <DialogDescription>
-            Add a new monitor to track the uptime of your website.
+            {description}
           </DialogDescription>
         </DialogHeader>
         <form action={action} className="grid gap-6">
@@ -66,7 +73,7 @@ export function AddMonitorDialog() {
                   }}
                 />
 
-                {url && url !== "https://" ? (
+                {url && url.length > "https://".length ? (
                   <span className="absolute right-3">
                     {
                       urlPending ? (
@@ -92,7 +99,7 @@ export function AddMonitorDialog() {
             </div>
             <div className="grid gap-3">
               <Label htmlFor="frequencies">Frequency</Label>
-              <Select defaultValue="3m" name="frequency">
+              <Select defaultValue={(data && data?.frequency) || "3m"} name="frequency">
                 <SelectTrigger className="w-50">
                   <SelectValue placeholder="Select frequency" />
                 </SelectTrigger>
@@ -134,7 +141,7 @@ export function AddMonitorDialog() {
           </div>
           <DialogFooter className="sm:justify-start">
             <Button type="submit" disabled={pending}>
-              Add Monitor
+              {label}
             </Button>
             <DialogClose asChild>
               <Button variant="outline" disabled={pending}>

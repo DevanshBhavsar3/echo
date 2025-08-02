@@ -29,7 +29,7 @@ export const loginSchema = z.object({
     .trim(),
 })
 
-export const createWebsiteSchema = z.object({
+export const websiteSchema = z.object({
   url: z
     .string()
     .url("Please enter a valid URL.")
