@@ -15,6 +15,9 @@ type Handler struct {
 		DeleteWebsite(c *fiber.Ctx) error
 		UpdateWebsite(c *fiber.Ctx) error
 	}
+	Region interface {
+		GetRegions(c *fiber.Ctx) error
+	}
 	Auth interface {
 		Register(c *fiber.Ctx) error
 		Login(c *fiber.Ctx) error
@@ -28,5 +31,6 @@ func NewHandler(db *pgxpool.Pool) Handler {
 
 	return Handler{
 		Website: NewWebsiteHandler(store.Website, store.Region, store.WebsiteTick),
+		Region:  NewRegionHandler(store.Region),
 		Auth:    NewAuthHandler(store.User)}
 }

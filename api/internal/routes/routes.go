@@ -44,4 +44,8 @@ func SetupRoutes(app *fiber.App, handlers handler.Handler) {
 	websiteRouter.Put("/:id", handlers.Website.UpdateWebsite)
 	websiteRouter.Get("/:id", handlers.Website.GetWebsiteById)
 	websiteRouter.Delete("/:id", handlers.Website.DeleteWebsite)
+
+	// Region routes
+	regionRouter := v1Router.Group("/region")
+	regionRouter.Get("/", handlers.Region.GetRegions)
 }

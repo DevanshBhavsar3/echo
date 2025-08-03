@@ -315,7 +315,13 @@ func (s *WebsiteStorage) DeleteWebsite(ctx context.Context, id string, userId st
 }
 
 func (s *WebsiteStorage) UpdateWebsite(ctx context.Context, w Website, userId string) error {
-	query := `
+	tx, err := s.db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	updateWebsiteQuery := `
 		UPDATE 
 			website 
 		SET 
@@ -324,10 +330,50 @@ func (s *WebsiteStorage) UpdateWebsite(ctx context.Context, w Website, userId st
 			id = $3 AND created_by = $4
 	`
 
-	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	queryCtx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	_, err := s.db.Exec(ctx, query, w.Url, w.Frequency, w.ID, userId)
+	res, err := tx.Exec(queryCtx, updateWebsiteQuery, w.Url, w.Frequency, w.ID, userId)
+	if err != nil {
+		return err
+	}
+
+	count := res.RowsAffected()
+	if count == 0 {
+		return ErrNotFound
+	}
+
+	deleteRegionsQuery := `
+		DELETE FROM
+			website_region
+		WHERE
+			website_id = $1
+	`
+
+	queryCtx, cancel = context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	res, err = tx.Exec(queryCtx, deleteRegionsQuery, w.ID)
+	if err != nil {
+		return err
+	}
+
+	regionQuery := `
+		INSERT INTO "website_region" (website_id, region_id)
+		VALUES ($1, $2)	
+	`
+
+	for _, region := range w.Regions {
+		queryCtx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+		defer cancel()
+
+		_, err = tx.Exec(queryCtx, regionQuery, w.ID, region.ID)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = tx.Commit(ctx)
 	if err != nil {
 		return err
 	}

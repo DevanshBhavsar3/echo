@@ -57,7 +57,11 @@ export const columns: ColumnDef<Monitors>[] = [
       const ticks = row.getValue("ticks") as Tick[];
 
       if (ticks == null || ticks.length === 0) {
-        return <span className="bg-gray-400 h-full w-4 p-1" />
+        return (
+          <div className="flex items-center gap-1 h-full">
+            <span className="bg-gray-400 h-full w-4 p-1" />
+          </div>
+        )
       }
 
       return (
@@ -87,7 +91,6 @@ export const columns: ColumnDef<Monitors>[] = [
     header: "Regions",
     cell: ({ row }) => {
       const regions = row.getValue("regions") as string[];
-
 
       return (
         <div className="flex items-center gap-1">
