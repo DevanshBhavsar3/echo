@@ -5,7 +5,6 @@ install:
 	@echo "Installing dependencies..."
 	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 	@go install github.com/golang-migrate/migrate/v4/cmd/migrate@latest
-	@export PATH="$HOME/go/bin:$PATH"
 
 test:
 	@go test $(shell go list -f '{{.Dir}}/...' -m | xargs)

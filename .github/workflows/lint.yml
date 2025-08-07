@@ -17,12 +17,15 @@ jobs:
 
       - name: Setup bun
         run: npm install -g bun
+
+      - name: Install golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
         
       - name: Install Dependencies
         run: |
           bun install
-          make install
-          export PATH="$HOME/go/bin:$PATH"
           cd web && bun install
 
       - name: Run linting check (/web)
