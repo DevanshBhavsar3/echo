@@ -7,23 +7,45 @@ on:
     branches:
       - '**'
 
+env:
+  GO_VERSION: stable
+
 jobs:
-  Continuous-Integration:
+  detect-modules:
+    runs-on: ubuntu-latest
+    outputs:
+      modules: ${{ steps.set-modules.outputs.modules }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - id: set-modules
+        run: echo "modules=$(go list -m -json | jq -s '.' | jq -c '[.[].Dir]')" >> $GITHUB_OUTPUT
+
+  go-lint:
+    needs: detect-modules
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        modules: ${{ fromJSON(needs.detect-modules.outputs.modules) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - name: Run golangci-lint on ${{ matrix.modules }}
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: ${{ env.GOLANGCI_LINT_VERSION }}
+          working-directory: ${{ matrix.modules }}
+
+  format-and-lint:
     name: Performs linting, formatting on the application
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the Repository
         uses: actions/checkout@v4
-
-      - name: Set up Golang
-        uses: actions/setup-go@v5
-        with:
-          go-version: stable
-
-      - name: Install golangci-lint
-        uses: golangci/golangci-lint-action@v8
-        with:
-          version: v2.1
 
       - name: Setup bun
         run: npm install -g bun
@@ -35,9 +57,6 @@ jobs:
 
       - name: Run linting check (/web)
         run: bun run lint
-
-      - name: Run linting check (go)
-        run: make lint
 
       - name: Check formatting (/web)
         run: bun run format:check

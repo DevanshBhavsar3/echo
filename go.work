@@ -2,10 +2,10 @@ go 1.24.4
 
 use (
 	./api
-	./publisher
-	./worker
-	./db-worker
 	./common/config
 	./common/db
 	./common/redisClient
+	./db-worker
+	./publisher
+	./worker
 )
