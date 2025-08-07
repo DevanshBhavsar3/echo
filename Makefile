@@ -1,4 +1,4 @@
-include .env
+-include .env
 MIGRAION_PATH = ./common/db/migrations
 
 install:
