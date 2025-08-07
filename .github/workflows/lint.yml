@@ -24,6 +24,7 @@ jobs:
         run: echo "modules=$(go list -m -json | jq -s '.' | jq -c '[.[].Dir]')" >> $GITHUB_OUTPUT
 
   go-lint:
+    name: Run golangci-lint on Go modules
     needs: detect-modules
     runs-on: ubuntu-latest
     strategy:
