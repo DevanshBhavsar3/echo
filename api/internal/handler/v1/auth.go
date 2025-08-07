@@ -59,7 +59,7 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 				"error": "Email already used.",
 			})
 		default:
-			c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Error creating user.",
 			})
 		}

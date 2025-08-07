@@ -1,34 +1,38 @@
-import { ProgressChart } from "@/components/assets/progess-chart";
-import { RegisterForm } from "@/components/register-form";
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import { ProgressChart } from '@/components/assets/progess-chart'
+import { RegisterForm } from '@/components/register-form'
+import {
+    Breadcrumb,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbList,
+    BreadcrumbPage,
+    BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb'
 
 export default function RegisterPage() {
-  return (
-    <div className="min-h-svh w-full flex flex-col justify-center items-center text-left p-6 md:p-10">
+    return (
+        <div className="flex min-h-svh w-full flex-col items-center justify-center p-6 text-left md:p-10">
+            <Breadcrumb className="absolute left-0 top-0 z-10 w-full px-4 py-2">
+                <BreadcrumbList>
+                    <BreadcrumbItem>
+                        <BreadcrumbLink href="/">Home</BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator />
+                    <BreadcrumbItem>
+                        <BreadcrumbPage>Register</BreadcrumbPage>
+                    </BreadcrumbItem>
+                </BreadcrumbList>
+            </Breadcrumb>
 
-      <Breadcrumb className="absolute top-0 left-0 w-full px-4 py-2 z-10">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/">Home</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>Register</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+            <div className="z-10 w-full max-w-sm">
+                <RegisterForm />
+            </div>
 
-      <div className="w-full max-w-sm z-10">
-        <RegisterForm />
-      </div>
+            <ProgressChart />
 
-      <ProgressChart />
-
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-sm text-muted-foreground">
-        Echo is a free and open-source project.
-      </div>
-    </div >
-  );
+            <div className="text-muted-foreground absolute bottom-4 left-1/2 -translate-x-1/2 transform text-sm">
+                Echo is a free and open-source project.
+            </div>
+        </div>
+    )
 }
-
-

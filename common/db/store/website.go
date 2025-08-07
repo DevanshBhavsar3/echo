@@ -27,6 +27,7 @@ func (s *WebsiteStorage) CreateWebsite(ctx context.Context, w Website, userId st
 	if err != nil {
 		return nil, err
 	}
+	//nolint:errcheck
 	defer tx.Rollback(ctx)
 
 	websiteQuery := `
@@ -266,6 +267,7 @@ func (s *WebsiteStorage) DeleteWebsite(ctx context.Context, id string, userId st
 	if err != nil {
 		return err
 	}
+	//nolint:errcheck
 	defer tx.Rollback(ctx)
 
 	websiteRegionQuery := `
@@ -319,6 +321,7 @@ func (s *WebsiteStorage) UpdateWebsite(ctx context.Context, w Website, userId st
 	if err != nil {
 		return err
 	}
+	//nolint:errcheck
 	defer tx.Rollback(ctx)
 
 	updateWebsiteQuery := `
@@ -353,7 +356,7 @@ func (s *WebsiteStorage) UpdateWebsite(ctx context.Context, w Website, userId st
 	queryCtx, cancel = context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	res, err = tx.Exec(queryCtx, deleteRegionsQuery, w.ID)
+	_, err = tx.Exec(queryCtx, deleteRegionsQuery, w.ID)
 	if err != nil {
 		return err
 	}

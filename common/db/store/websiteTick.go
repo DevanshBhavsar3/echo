@@ -25,12 +25,6 @@ func (s WebsiteStatus) String() string {
 	return "unknown"
 }
 
-var statusName = map[string]WebsiteStatus{
-	"up":      Up,
-	"down":    Down,
-	"unknown": Unknown,
-}
-
 const (
 	Up WebsiteStatus = iota
 	Down
@@ -161,6 +155,7 @@ func (s *WebsiteTickStorage) BatchInsertTicks(ctx context.Context, ticks []Websi
 	if err != nil {
 		return err
 	}
+	//nolint:errcheck
 	defer tx.Rollback(ctx)
 
 	for _, t := range ticks {

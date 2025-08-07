@@ -52,7 +52,10 @@ func sendRequest(t *testing.T, method string, url string, data interface{}, cook
 	if err != nil {
 		t.Error(err)
 	}
-	defer res.Body.Close()
+	err = res.Body.Close()
+	if err != nil {
+		t.Error(err)
+	}
 
 	resBody, err := io.ReadAll(res.Body)
 	if err != nil {

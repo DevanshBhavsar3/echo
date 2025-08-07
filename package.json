@@ -1,0 +1,27 @@
+{
+  "name": "echo",
+  "version": "1.0.0",
+  "description": "Uptime monitoring tool for websites and APIs.",
+  "bugs": {
+    "url": "https://github.com/DevanshBhavsar3/echo/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DevanshBhavsar3/echo.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "scripts": {
+    "lint": "cd web && bun run lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "prettier": "^3.6.2",
+    "prettier-plugin-tailwindcss": "^0.6.14"
+  }
+}

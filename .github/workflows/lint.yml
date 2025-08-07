@@ -1,0 +1,35 @@
+name: Linting and formatting on Commits
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  Continuous-Integration:
+    name: Performs linting, formatting on the application
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the Repository
+        uses: actions/checkout@v3
+
+      - name: Setup bun
+        run: npm install -g bun
+        
+      - name: Install Dependencies
+        run: bun install \
+          && make install
+
+      - name: Run linting check (/web)
+        run: bun run lint
+
+      - name: Run linting check (go)
+        run: make lint
+
+      - name: Check formatting (/web)
+        run: bun run format:check
+
+      - name: Check formatting (go)
+        run: make format-check

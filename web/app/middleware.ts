@@ -1,2 +1,1 @@
-export { auth as middlware } from "./auth";
-
+export { auth as middlware } from './auth'

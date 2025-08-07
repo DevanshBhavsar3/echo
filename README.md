@@ -16,6 +16,7 @@
 ```
 docker compose up --build
 ```
+
 Then press w to enable hot reloading.
 
 - Hot reloading is available in api & web.

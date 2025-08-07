@@ -1,75 +1,77 @@
-"use server"
+'use server'
 
-import axios, { AxiosError } from "axios";
-import { loginSchema, registerSchema } from "@/lib/types";
-import { AuthError } from "next-auth";
-import { API_URL } from "../constants";
-import { redirect } from "next/navigation";
-import { signIn } from "../auth";
-
+import axios, { AxiosError } from 'axios'
+import { loginSchema, registerSchema } from '@/lib/types'
+import { AuthError } from 'next-auth'
+import { API_URL } from '../constants'
+import { redirect } from 'next/navigation'
+import { signIn } from '../auth'
 
 export async function register(_: unknown, formData: FormData) {
-  const parsedData = registerSchema.safeParse({
-    name: formData.get("name"),
-    email: formData.get("email"),
-    password: formData.get("password"),
-  })
-
-  if (!parsedData.success) {
-    return {
-      data: Object.fromEntries(formData.entries()),
-      errors: parsedData.error.flatten().fieldErrors,
-    }
-  }
-
-  try {
-    await axios.post(`${API_URL}/auth/register`, {
-      ...parsedData.data,
-      avatar: "https://api.dicebear.com/6.x/initials/svg?seed=" + parsedData.data.name,
+    const parsedData = registerSchema.safeParse({
+        name: formData.get('name'),
+        email: formData.get('email'),
+        password: formData.get('password'),
     })
-  } catch (error) {
-    if (error instanceof AxiosError) {
-      return {
-        error: error.response?.data?.error || "An error occurred during registration.",
-      }
+
+    if (!parsedData.success) {
+        return {
+            data: Object.fromEntries(formData.entries()),
+            errors: parsedData.error.flatten().fieldErrors,
+        }
     }
 
-    return {
-      error: "An unexpected error occurred.",
-    }
-  }
+    try {
+        await axios.post(`${API_URL}/auth/register`, {
+            ...parsedData.data,
+            avatar:
+                'https://api.dicebear.com/6.x/initials/svg?seed=' +
+                parsedData.data.name,
+        })
+    } catch (error) {
+        if (error instanceof AxiosError) {
+            return {
+                error:
+                    error.response?.data?.error ||
+                    'An error occurred during registration.',
+            }
+        }
 
-  redirect("/login")
+        return {
+            error: 'An unexpected error occurred.',
+        }
+    }
+
+    redirect('/login')
 }
 
 export async function login(_: unknown, formData: FormData) {
-  const values = Object.fromEntries(formData.entries());
+    const values = Object.fromEntries(formData.entries())
 
-  const parsedData = loginSchema.safeParse({
-    email: values["email"],
-    password: values["password"],
-  })
+    const parsedData = loginSchema.safeParse({
+        email: values['email'],
+        password: values['password'],
+    })
 
-  if (!parsedData.success) {
-    return { error: parsedData.error.issues[0].message }
-  }
-
-  const { email, password } = parsedData.data;
-
-  try {
-    await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
-  } catch (error) {
-    if (error instanceof AuthError) {
-      return { error: error.cause?.err?.message }
+    if (!parsedData.success) {
+        return { error: parsedData.error.issues[0].message }
     }
 
-    return { error: "An unexpected error occurred during login." }
-  }
+    const { email, password } = parsedData.data
 
+    try {
+        await signIn('credentials', {
+            email,
+            password,
+            redirect: false,
+        })
+    } catch (error) {
+        if (error instanceof AuthError) {
+            return { error: error.cause?.err?.message }
+        }
 
-  redirect("/dashboard")
+        return { error: 'An unexpected error occurred during login.' }
+    }
+
+    redirect('/dashboard')
 }
