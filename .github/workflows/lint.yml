@@ -19,8 +19,7 @@ jobs:
         run: npm install -g bun
         
       - name: Install Dependencies
-        run: bun install \
-          && make install
+        run: bun install && make install
 
       - name: Run linting check (/web)
         run: bun run lint
