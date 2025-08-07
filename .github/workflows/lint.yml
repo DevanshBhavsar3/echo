@@ -22,6 +22,7 @@ jobs:
         run: |
           bun install
           make install
+          export PATH="$HOME/go/bin:$PATH"
           cd web && bun install
 
       - name: Run linting check (/web)
