@@ -1,6 +1,6 @@
 cd web
 bun run format 
-bun run lint
+bun run lint:check
 
 cd ..
 make format

@@ -56,7 +56,7 @@ jobs:
           cd web && bun install
 
       - name: Run linting check (/web)
-        run: cd web && bun run lint
+        run: cd web && bun run lint:check
 
       - name: Check formatting (/web)
         run: cd web && bun run format:check

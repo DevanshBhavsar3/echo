@@ -26,7 +26,7 @@ import { MoreHorizontal } from 'lucide-react'
 import ReactCountryFlag from 'react-country-flag'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { deleteWebsite, editWebsite } from '../actions/website'
+import { deleteWebsite, editWebsite } from '../../actions/website'
 import { DialogBox } from '@/components/dashboard/dialog'
 import { DialogTrigger } from '@/components/ui/dialog'
 
@@ -35,7 +35,7 @@ export type Tick = {
     status: string
 }
 
-export type Monitors = {
+export type Monitor = {
     id: string
     url: string
     frequency: string
@@ -44,24 +44,55 @@ export type Monitors = {
     ticks: Tick[]
 }
 
-export const columns: ColumnDef<Monitors>[] = [
+const statusStyles: Record<string, string> = {
+    up: 'bg-green-400',
+    down: 'bg-red-400',
+    unknown: 'bg-yellow-400',
+    default: 'bg-gray-400',
+}
+
+export const columns: ColumnDef<Monitor>[] = [
     {
         accessorKey: 'url',
-        header: 'Url',
-    },
-    {
-        id: 'status',
-        header: 'Status',
+        header: 'Monitor',
         cell: ({ row }) => {
+            const url = row.getValue('url') as string
             const ticks = row.getValue('ticks') as Tick[]
+            let status
 
-            if (ticks == null || ticks.length === 0) {
-                return <div className="text-gray-500">Unknown</div>
+            if (!ticks || ticks.length === 0) {
+                status = 'unknown'
+            } else {
+                status = ticks[ticks.length - 1].status
             }
 
-            const status = ticks[ticks.length - 1].status
+            const createdAt = row.original.createdAt
 
-            return <div>{status.charAt(0).toUpperCase() + status.slice(1)}</div>
+            return (
+                <div className="flex items-center gap-3">
+                    {
+                        <span
+                            className={`size-3 rounded-full ${statusStyles[status] || statusStyles.default} flex items-center justify-center opacity-70`}
+                        ></span>
+                    }
+                    <div className="grid gap-1">
+                        <a
+                            href={url}
+                            target="_blank"
+                            className="text-md w-fit hover:underline"
+                        >
+                            {new URL(url).hostname}
+                        </a>
+                        <span className="text-muted-foreground text-xs">
+                            Last checked{' '}
+                            <LastCheckedCell
+                                ticks={ticks}
+                                createdAt={createdAt}
+                            />
+                        </span>
+                    </div>
+                </div>
+            )
         },
     },
     {
@@ -138,16 +169,6 @@ export const columns: ColumnDef<Monitors>[] = [
         },
     },
     {
-        accessorKey: 'lastChecked',
-        header: 'Last Checked',
-        cell: ({ row }) => {
-            const ticks = row.getValue('ticks') as Tick[]
-            const createdAt = row.original.createdAt
-
-            return <LastCheckedCell ticks={ticks} createdAt={createdAt} />
-        },
-    },
-    {
         id: 'actions',
         cell: ({ row }) => {
             const monitor = row.original
@@ -189,7 +210,7 @@ export const columns: ColumnDef<Monitors>[] = [
     },
 ]
 
-export function DataTable({ data }: { data: Monitors[] }) {
+export function DataTable({ data }: { data: Monitor[] }) {
     const table = useReactTable({
         data,
         columns,
@@ -208,7 +229,7 @@ export function DataTable({ data }: { data: Monitors[] }) {
     return (
         <div className="border">
             <Table>
-                <TableHeader className="bg-muted sticky top-0 z-10">
+                <TableHeader className="bg-muted sticky top-0 z-10 font-sans">
                     {table.getHeaderGroups().map((headerGroup) => (
                         <TableRow key={headerGroup.id}>
                             {headerGroup.headers.map((header) => {
@@ -227,13 +248,17 @@ export function DataTable({ data }: { data: Monitors[] }) {
                         </TableRow>
                     ))}
                 </TableHeader>
+
+                {/** onClick={() =>
+                                    router.push(
+                                        `/dashboard/monitor/${row.original.id}`,
+                                    )
+                                }
+**/}
                 <TableBody>
                     {table.getRowModel().rows?.length ? (
                         table.getRowModel().rows.map((row) => (
-                            <TableRow
-                                key={row.id}
-                                data-state={row.getIsSelected() && 'selected'}
-                            >
+                            <TableRow key={row.id} className="cursor-pointer">
                                 {row.getVisibleCells().map((cell) => (
                                     <TableCell key={cell.id}>
                                         {flexRender(
@@ -263,9 +288,13 @@ export function DataTable({ data }: { data: Monitors[] }) {
 function LastCheckedCell({
     ticks,
     createdAt,
+    className,
+    ...props
 }: {
     ticks?: Tick[]
     createdAt: string
+    className?: string
+    props?: React.ComponentProps<'span'>
 }) {
     const [elapsedTime, setElapsedTime] = useState(0)
 
@@ -290,12 +319,10 @@ function LastCheckedCell({
     }, [ticks, createdAt])
 
     return (
-        <div>
-            <span>
-                {Math.floor(elapsedTime / 60) > 0
-                    ? `${Math.floor(elapsedTime / 60)} minute(s) ago`
-                    : `${Math.floor(elapsedTime % 3600)} second(s) ago`}
-            </span>
-        </div>
+        <span className={className} {...props}>
+            {Math.floor(elapsedTime / 60) > 0
+                ? `${Math.floor(elapsedTime / 60)} minute(s) ago`
+                : `${Math.floor(elapsedTime % 3600)} second(s) ago`}
+        </span>
     )
 }

@@ -33,7 +33,7 @@ export default async function HomePage() {
                     <div className="grid gap-3">
                         <div className="grid w-fit grid-cols-2 items-center gap-3">
                             {user?.user.id ? (
-                                <Link href={'/dashboard'}>
+                                <Link href={'/dashboard/monitors'}>
                                     <Button size={'sm'}>Dashboard</Button>
                                 </Link>
                             ) : (

@@ -25,7 +25,7 @@ import {
 } from '../ui/select'
 import { useDebounce } from '@/hooks/use-debounce'
 import { CircleCheckBig, CircleX, LoaderCircle } from 'lucide-react'
-import { Monitors } from '@/app/dashboard/data-table'
+import { Monitor } from '@/app/dashboard/monitors/data-table'
 import { fetchRegions } from '@/app/actions/region'
 
 type Region = {
@@ -43,7 +43,7 @@ const frequencies = [
 interface DialogProps {
     label: string
     description?: string
-    data?: Monitors
+    data?: Monitor
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onSubmitAction: (_: unknown, formData: FormData) => Promise<any>
     children?: React.ReactNode

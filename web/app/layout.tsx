@@ -29,7 +29,7 @@ export default function RootLayout({
     return (
         <html
             lang="en"
-            className={`${spaceMono.className} ${geist.variable}`}
+            className={`${spaceMono.className} ${geist.className}`}
             suppressHydrationWarning
         >
             <body>
