@@ -24,7 +24,7 @@ export default async function HomePage() {
                         <h1 className="max-w-md scroll-m-20 text-left font-mono text-4xl tracking-tight">
                             Your Servers Speak, We Listen.
                         </h1>
-                        <p className="text-muted-foreground max-w-md text-balance font-sans">
+                        <p className="text-muted-foreground max-w-md font-sans text-balance">
                             Stop worrying about your servers. Get comprehensive
                             uptime monitoring without spending single penny.
                         </p>

@@ -1,5 +1,7 @@
+cd web
 bun run format 
 bun run lint
 
+cd ..
 make format
 make lint
