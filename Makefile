@@ -10,6 +10,7 @@ test:
 	@go test $(shell go list -f '{{.Dir}}/...' -m | xargs)
 
 lint:
+	@echo "Running linters for go..."
 	@golangci-lint run ./api/...
 	@golangci-lint run ./common/config/...
 	@golangci-lint run ./common/db/...
@@ -19,9 +20,11 @@ lint:
 	@golangci-lint run ./db-worker/...
 
 format:
+	@echo "Running gofmt..."
 	@gofmt -s -w .
 
 format-check:
+	@echo "Checking gofmt..."
 	@if [ -n "$$(gofmt -l .)" ]; then \
 		exit 1; \
 	fi
