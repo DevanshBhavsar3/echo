@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"errors"
+	"slices"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -140,6 +141,8 @@ func (s *WebsiteTickStorage) GetLatestStatus(ctx context.Context, websiteID stri
 
 		status = append(status, tick)
 	}
+
+	slices.Reverse(status)
 
 	return status, nil
 }

@@ -22,17 +22,25 @@ import {
     DropdownMenuItem,
     DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
-import { MoreHorizontal } from 'lucide-react'
-import ReactCountryFlag from 'react-country-flag'
+import { Disc2, MoreHorizontal } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { deleteWebsite, editWebsite } from '../../actions/website'
 import { DialogBox } from '@/components/dashboard/dialog'
 import { DialogTrigger } from '@/components/ui/dialog'
+import { cva } from 'class-variance-authority'
+import { cn } from '@/lib/utils'
+import {
+    Tooltip,
+    TooltipTrigger,
+    TooltipContent,
+} from '@/components/ui/tooltip'
+
+export type Status = 'up' | 'down' | 'unknown'
 
 export type Tick = {
     time: string
-    status: string
+    status: Status
 }
 
 export type Monitor = {
@@ -44,12 +52,31 @@ export type Monitor = {
     ticks: Tick[]
 }
 
-const statusStyles: Record<string, string> = {
-    up: 'bg-green-400',
-    down: 'bg-red-400',
-    unknown: 'bg-yellow-400',
-    default: 'bg-gray-400',
-}
+const statusStyles = cva('', {
+    variants: {
+        status: {
+            up: 'text-green-400',
+            down: 'text-red-400',
+            unknown: 'text-yellow-400',
+        },
+        intent: {
+            text: '',
+            bg: '',
+        },
+    },
+    compoundVariants: [
+        { status: 'up', intent: 'text', className: 'text-green-500' },
+        { status: 'down', intent: 'text', className: 'text-red-500' },
+        { status: 'unknown', intent: 'text', className: 'text-yellow-500' },
+        { status: 'up', intent: 'bg', className: 'bg-green-400' },
+        { status: 'down', intent: 'bg', className: 'bg-red-400' },
+        { status: 'unknown', intent: 'bg', className: 'bg-yellow-400' },
+    ],
+    defaultVariants: {
+        status: 'unknown',
+        intent: 'text',
+    },
+})
 
 export const columns: ColumnDef<Monitor>[] = [
     {
@@ -58,7 +85,8 @@ export const columns: ColumnDef<Monitor>[] = [
         cell: ({ row }) => {
             const url = row.getValue('url') as string
             const ticks = row.getValue('ticks') as Tick[]
-            let status
+            const createdAt = row.original.createdAt
+            let status: Status
 
             if (!ticks || ticks.length === 0) {
                 status = 'unknown'
@@ -66,13 +94,14 @@ export const columns: ColumnDef<Monitor>[] = [
                 status = ticks[ticks.length - 1].status
             }
 
-            const createdAt = row.original.createdAt
-
             return (
                 <div className="flex items-center gap-3">
                     {
                         <span
-                            className={`size-3 rounded-full ${statusStyles[status] || statusStyles.default} flex items-center justify-center opacity-70`}
+                            className={cn(
+                                'flex size-3 items-center justify-center rounded-full opacity-70',
+                                statusStyles({ status, intent: 'bg' }),
+                            )}
                         ></span>
                     }
                     <div className="grid gap-1">
@@ -83,13 +112,27 @@ export const columns: ColumnDef<Monitor>[] = [
                         >
                             {new URL(url).hostname}
                         </a>
-                        <span className="text-muted-foreground text-xs">
-                            Last checked{' '}
-                            <LastCheckedCell
-                                ticks={ticks}
-                                createdAt={createdAt}
-                            />
-                        </span>
+                        <div className="flex items-baseline gap-2">
+                            <span
+                                className={cn(
+                                    'flex items-center text-xs font-medium',
+                                    statusStyles({ status, intent: 'text' }),
+                                )}
+                            >
+                                {status.charAt(0).toUpperCase() +
+                                    status.slice(1)}
+                            </span>
+                            <span className="text-muted-foreground text-xs">
+                                •
+                            </span>
+                            <span className="text-muted-foreground text-xs">
+                                Last checked{' '}
+                                <LastCheckedCell
+                                    ticks={ticks}
+                                    createdAt={createdAt}
+                                />
+                            </span>
+                        </div>
                     </div>
                 </div>
             )
@@ -104,7 +147,22 @@ export const columns: ColumnDef<Monitor>[] = [
             if (ticks == null || ticks.length === 0) {
                 return (
                     <div className="flex h-full items-center gap-1">
-                        <span className="h-full w-4 bg-gray-400 p-1" />
+                        <Tooltip>
+                            <TooltipTrigger>
+                                <span
+                                    className={cn(
+                                        'h-full w-4 p-1',
+                                        statusStyles({
+                                            status: 'unknown',
+                                            intent: 'bg',
+                                        }),
+                                    )}
+                                ></span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                No uptime data available
+                            </TooltipContent>
+                        </Tooltip>
                     </div>
                 )
             }
@@ -112,33 +170,23 @@ export const columns: ColumnDef<Monitor>[] = [
             return (
                 <div className="flex h-full items-center gap-1">
                     {ticks.map((tick, index) => {
-                        if (tick.status == 'up') {
-                            return (
-                                <span
-                                    className="h-full w-4 bg-green-400 p-1"
-                                    key={index}
-                                ></span>
-                            )
-                        } else if (tick.status == 'down') {
-                            return (
-                                <span
-                                    className="h-full w-4 bg-red-400 p-1"
-                                    key={index}
-                                ></span>
-                            )
-                        } else if (tick.status == 'unknown') {
-                            return (
-                                <span
-                                    className="h-full w-4 bg-yellow-400 p-1"
-                                    key={index}
-                                ></span>
-                            )
-                        }
                         return (
-                            <span
-                                className="h-full w-4 bg-gray-400 p-1"
-                                key={index}
-                            ></span>
+                            <Tooltip key={index}>
+                                <TooltipTrigger>
+                                    <span
+                                        className={cn(
+                                            'h-full w-4 p-1',
+                                            statusStyles({
+                                                status: tick.status,
+                                                intent: 'bg',
+                                            }),
+                                        )}
+                                    ></span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>{new Date(tick.time).toTimeString()}</p>
+                                </TooltipContent>
+                            </Tooltip>
                         )
                     })}
                 </div>
@@ -148,23 +196,21 @@ export const columns: ColumnDef<Monitor>[] = [
     {
         accessorKey: 'frequency',
         header: 'Frequency',
-    },
-    {
-        accessorKey: 'regions',
-        header: 'Regions',
         cell: ({ row }) => {
-            const regions = row.getValue('regions') as string[]
+            const frequency = row.getValue('frequency') as string
 
             return (
-                <div className="flex items-center gap-1">
-                    {regions.map((region, index) => (
-                        <ReactCountryFlag
-                            key={index}
-                            countryCode={region.toUpperCase()}
-                            svg
-                        />
-                    ))}
-                </div>
+                <Tooltip>
+                    <TooltipTrigger>
+                        <div className="text-muted-foreground flex items-center gap-2">
+                            <Disc2 size={16} />
+                            <span className="text-sm">{frequency}</span>
+                        </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>Checked every {frequency} seconds.</p>
+                    </TooltipContent>
+                </Tooltip>
             )
         },
     },
@@ -308,7 +354,9 @@ function LastCheckedCell({
                 )
             } else {
                 elapsedTime = Math.floor(
-                    (Date.now() - new Date(ticks[0].time).getTime()) / 1000,
+                    (Date.now() -
+                        new Date(ticks[ticks.length - 1].time).getTime()) /
+                        1000,
                 )
             }
 

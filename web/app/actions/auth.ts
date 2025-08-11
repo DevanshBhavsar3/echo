@@ -73,5 +73,5 @@ export async function login(_: unknown, formData: FormData) {
         return { error: 'An unexpected error occurred during login.' }
     }
 
-    redirect('/dashboard')
+    redirect('/dashboard/monitors')
 }

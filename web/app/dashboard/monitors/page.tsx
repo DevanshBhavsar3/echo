@@ -26,16 +26,6 @@ export default async function DashboardPage() {
         })
 
         data = (res.data as Monitor[]) || []
-
-        if (data.length > 0) {
-            data = data.map((item: Monitor) => ({
-                ...item,
-                ticks: item.ticks?.sort(
-                    (a, b) =>
-                        new Date(b.time).getTime() - new Date(a.time).getTime(),
-                ),
-            }))
-        }
     } catch (error) {
         console.error('Error fetching data:', error)
         redirect('/error')

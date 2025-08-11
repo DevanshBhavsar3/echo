@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import { Monitor } from '../data-table'
 import axios from 'axios'
 import { API_URL } from '@/app/constants'
-import { MonitorInfo } from '@/components/dashboard/monitor/monitor-info'
+import { MonitorInfo } from '@/components/dashboard/monitors/monitor-info'
 
 export default async function MonitorPage({
     params,
