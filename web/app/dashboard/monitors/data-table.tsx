@@ -208,7 +208,7 @@ export const columns: ColumnDef<Monitor>[] = [
                         </div>
                     </TooltipTrigger>
                     <TooltipContent>
-                        <p>Checked every {frequency} seconds.</p>
+                        <p>Checked every {frequency}.</p>
                     </TooltipContent>
                 </Tooltip>
             )
@@ -220,37 +220,39 @@ export const columns: ColumnDef<Monitor>[] = [
             const monitor = row.original
 
             return (
-                <DialogBox
-                    label={'Edit Monitor'}
-                    description={'Edit your monitor configuration.'}
-                    data={monitor}
-                    onSubmitAction={(_: unknown, formData: FormData) =>
-                        editWebsite(monitor.id, formData)
-                    }
-                >
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Open menu</span>
-                                <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
-                                <DialogTrigger className="w-full text-left">
-                                    Edit
-                                </DialogTrigger>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                                variant="destructive"
-                                onClick={() => deleteWebsite(monitor.id)}
-                            >
-                                Delete
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </DialogBox>
+                <div onClick={(e) => e.stopPropagation()}>
+                    <DialogBox
+                        label={'Edit Monitor'}
+                        description={'Edit your monitor configuration.'}
+                        data={monitor}
+                        onSubmitAction={(_: unknown, formData: FormData) =>
+                            editWebsite(monitor.id, formData)
+                        }
+                    >
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <span className="sr-only">Open menu</span>
+                                    <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem>
+                                    <DialogTrigger className="w-full text-left">
+                                        Edit
+                                    </DialogTrigger>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                    variant="destructive"
+                                    onClick={() => deleteWebsite(monitor.id)}
+                                >
+                                    Delete
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </DialogBox>
+                </div>
             )
         },
     },
@@ -295,16 +297,18 @@ export function DataTable({ data }: { data: Monitor[] }) {
                     ))}
                 </TableHeader>
 
-                {/** onClick={() =>
-                                    router.push(
-                                        `/dashboard/monitor/${row.original.id}`,
-                                    )
-                                }
-**/}
                 <TableBody>
                     {table.getRowModel().rows?.length ? (
                         table.getRowModel().rows.map((row) => (
-                            <TableRow key={row.id} className="cursor-pointer">
+                            <TableRow
+                                key={row.id}
+                                className="cursor-pointer"
+                                onClick={() =>
+                                    router.push(
+                                        `/dashboard/monitors/${row.original.id}`,
+                                    )
+                                }
+                            >
                                 {row.getVisibleCells().map((cell) => (
                                     <TableCell key={cell.id}>
                                         {flexRender(

@@ -13,6 +13,20 @@ import (
 
 type WebsiteStatus int
 
+var websiteStatusMap = map[string]WebsiteStatus{
+	"up":      Up,
+	"down":    Down,
+	"unknown": Unknown,
+}
+
+func ParseWebsiteStatus(status string) (WebsiteStatus, error) {
+	if s, ok := websiteStatusMap[status]; ok {
+		return s, nil
+	}
+
+	return Unknown, errors.New("invalid website status")
+}
+
 func (s WebsiteStatus) String() string {
 	switch s {
 	case Up:
@@ -32,34 +46,30 @@ const (
 	Unknown
 )
 
-type Status struct {
-	Time   time.Time `json:"time"`
-	Status string    `json:"status"`
+type Tick struct {
+	WebsiteTick
+	Region
 }
 
 type WebsiteTick struct {
-	ID             string        `json:"id"`
-	Time           time.Time     `json:"time"`
-	ResponseTimeMS int64         `json:"response_time_ms"`
-	Status         WebsiteStatus `json:"status"`
-	RegionID       string        `json:"region_id"`
-	WebsiteID      string        `json:"website_id"`
+	ID             *string   `json:"id,omitempty"`
+	Time           time.Time `json:"time"`
+	ResponseTimeMS *int64    `json:"responseTime,omitempty"`
+	Status         string    `json:"status,omitempty"`
+	RegionID       *string   `json:"region_id,omitempty"`
+	WebsiteID      *string   `json:"website_id,omitempty"`
 }
 
 type WebsiteTickStorage struct {
 	db *pgxpool.Pool
 }
 
-func (s *WebsiteTickStorage) GetLatestTicks(ctx context.Context, websiteID string) ([]WebsiteTick, error) {
+func (s *WebsiteTickStorage) GetLatestStatus(ctx context.Context, websiteID string) ([]WebsiteTick, error) {
 	query := `
-		SELECT id, 
-					 time,
-					 response_time_ms,
-					 status, 
-					 region_id, 
-					 website_id
+		SELECT time, status
 		FROM "website_tick"
 		WHERE website_id = $1
+		ORDER BY time DESC
 		LIMIT 5
 	`
 
@@ -77,67 +87,18 @@ func (s *WebsiteTickStorage) GetLatestTicks(ctx context.Context, websiteID strin
 	}
 	defer rows.Close()
 
-	var ticks []WebsiteTick
-
-	for rows.Next() {
-		var t WebsiteTick
-
-		err := rows.Scan(
-			&t.ID,
-			&t.Time,
-			&t.ResponseTimeMS,
-			&t.Status,
-			&t.RegionID,
-			&t.WebsiteID,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		ticks = append(ticks, t)
-	}
-
-	return ticks, nil
-}
-
-func (s *WebsiteTickStorage) GetLatestStatus(ctx context.Context, websiteID string) ([]Status, error) {
-	query := `
-		SELECT time, status
-		FROM "website_tick"
-		WHERE website_id = $1
-		ORDER BY time DESC
-		LIMIT 5
-	`
-
-	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
-	defer cancel()
-
-	rows, err := s.db.Query(ctx, query, websiteID)
-	if err != nil {
-		switch {
-		case errors.Is(err, pgx.ErrNoRows):
-			return []Status{}, nil
-		default:
-			return nil, err
-		}
-	}
-	defer rows.Close()
-
-	var status []Status
+	var status []WebsiteTick
 
 	for rows.Next() {
 		var tickTime pgtype.Timestamptz
-		var tickStatus string
+		var tick WebsiteTick
 
-		err := rows.Scan(&tickTime, &tickStatus)
+		err := rows.Scan(&tickTime, &tick.Status)
 		if err != nil {
 			return nil, err
 		}
 
-		tick := Status{
-			Time:   tickTime.Time,
-			Status: tickStatus,
-		}
+		tick.Time = tickTime.Time
 
 		status = append(status, tick)
 	}
@@ -165,7 +126,7 @@ func (s *WebsiteTickStorage) BatchInsertTicks(ctx context.Context, ticks []Websi
 		queryCtx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 		defer cancel()
 
-		_, err := tx.Exec(queryCtx, query, t.Time, t.ResponseTimeMS, t.Status.String(), t.RegionID, t.WebsiteID)
+		_, err := tx.Exec(queryCtx, query, t.Time, t.ResponseTimeMS, t.Status, t.RegionID, t.WebsiteID)
 		if err != nil {
 			return err
 		}
@@ -176,4 +137,48 @@ func (s *WebsiteTickStorage) BatchInsertTicks(ctx context.Context, ticks []Websi
 	}
 
 	return nil
+}
+
+func (s *WebsiteTickStorage) GetTicks(ctx context.Context, websiteID string, start time.Time, end time.Time) ([]Tick, error) {
+	query := `
+		SELECT wt.id, wt.time, wt.response_time_ms, wt.status, r.name
+		FROM "website_tick" wt
+		JOIN "region" r ON wt.region_id = r.id
+		WHERE website_id = $1
+		AND time >= $2
+		AND time <= $3
+		ORDER BY wt.time DESC
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	rows, err := s.db.Query(ctx, query, websiteID, start, end)
+	if err != nil {
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			return []Tick{}, nil
+		default:
+			return nil, err
+		}
+	}
+	defer rows.Close()
+
+	var ticks []Tick
+
+	for rows.Next() {
+		var tickTime pgtype.Timestamptz
+		var tick Tick
+
+		err := rows.Scan(&tick.WebsiteTick.ID, &tickTime, &tick.ResponseTimeMS, &tick.WebsiteTick.Status, &tick.Region.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		tick.WebsiteTick.Time = tickTime.Time
+
+		ticks = append(ticks, tick)
+	}
+
+	return ticks, nil
 }

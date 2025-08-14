@@ -46,7 +46,7 @@ export async function Navbar() {
                 <ModeToggle />
 
                 {user?.user.id ? (
-                    <Link href={'/dashboard'}>
+                    <Link href={'/dashboard/monitors'}>
                         <Button variant={'outline'}>Dashboard</Button>
                     </Link>
                 ) : (

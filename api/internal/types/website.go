@@ -1,8 +1,6 @@
 package types
 
-import (
-	"github.com/DevanshBhavsar3/echo/common/db/store"
-)
+import "github.com/DevanshBhavsar3/echo/common/db/store"
 
 type AddWebsiteBody struct {
 	Url       string   `json:"url" validate:"url"`
@@ -15,12 +13,12 @@ type AddWebsiteResponse struct {
 }
 
 type WebsiteWithTicks struct {
-	ID        string         `json:"id"`
-	Url       string         `json:"url"`
-	Frequency string         `json:"frequency"`
-	Regions   []string       `json:"regions"`
-	CreatedAt string         `json:"createdAt"`
-	Ticks     []store.Status `json:"ticks"`
+	ID        string              `json:"id"`
+	Url       string              `json:"url"`
+	Frequency string              `json:"frequency"`
+	Regions   []string            `json:"regions"`
+	CreatedAt string              `json:"createdAt"`
+	Ticks     []store.WebsiteTick `json:"ticks"`
 }
 
 type GetAllWebsitesResponse = []WebsiteWithTicks

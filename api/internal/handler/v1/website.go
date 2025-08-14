@@ -102,7 +102,6 @@ func (h *WebsiteHandler) GetAllWebsites(c *fiber.Ctx) error {
 		ticks, err := h.tickStorage.GetLatestStatus(c.Context(), w.ID)
 
 		if err != nil {
-			fmt.Println(err)
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Error getting statues for website.",
 			})
@@ -245,4 +244,46 @@ func (h *WebsiteHandler) UpdateWebsite(c *fiber.Ctx) error {
 	}
 
 	return c.SendStatus(http.StatusNoContent)
+}
+
+func (h *WebsiteHandler) GetTicks(c *fiber.Ctx) error {
+	websiteId := c.Params("id")
+
+	err := uuid.Validate(websiteId)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid website id.",
+		})
+	}
+
+	start, err := time.Parse(time.RFC3339, c.Query("start"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid time range.",
+		})
+	}
+
+	end, err := time.Parse(time.RFC3339, c.Query("end"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid time range.",
+		})
+	}
+
+	ticks, err := h.tickStorage.GetTicks(c.Context(), websiteId, start, end)
+	if err != nil {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			return c.Status(http.StatusNotFound).JSON(fiber.Map{
+				"error": "No ticks found for this website.",
+			})
+		default:
+			fmt.Println("Error getting ticks:", err)
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Error getting ticks.",
+			})
+		}
+	}
+
+	return c.Status(http.StatusOK).JSON(ticks)
 }

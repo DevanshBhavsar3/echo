@@ -72,10 +72,10 @@ func main() {
 
 				tick := store.WebsiteTick{
 					Time:           time.Now(),
-					ResponseTimeMS: responseTime,
-					Status:         status,
+					ResponseTimeMS: &responseTime,
+					Status:         status.String(),
 					RegionID:       region.ID,
-					WebsiteID:      website.ID,
+					WebsiteID:      &website.ID,
 				}
 
 				encodedTick, err := json.Marshal(tick)
