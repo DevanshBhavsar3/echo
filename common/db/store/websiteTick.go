@@ -180,5 +180,7 @@ func (s *WebsiteTickStorage) GetTicks(ctx context.Context, websiteID string, sta
 		ticks = append(ticks, tick)
 	}
 
+	slices.Reverse(ticks)
+
 	return ticks, nil
 }

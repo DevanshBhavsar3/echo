@@ -6,6 +6,7 @@ import { API_URL } from '../constants'
 import { auth } from '../auth'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+import { Monitor } from '../dashboard/monitors/data-table'
 
 export async function createWebsite(_: unknown, formData: FormData) {
     const user = await auth()
@@ -63,7 +64,7 @@ export async function deleteWebsite(id: string) {
             },
         })
 
-        revalidatePath('/dashboard')
+        revalidatePath('/dashboard/monitors')
     } catch (error) {
         console.error('Error deleting website:', error)
     }
@@ -95,7 +96,7 @@ export async function editWebsite(websiteId: string, formData: FormData) {
             },
         })
 
-        revalidatePath('/dashboard')
+        revalidatePath('/dashboard/monitors')
     } catch (error) {
         if (error instanceof AxiosError) {
             return {
@@ -133,5 +134,24 @@ export async function pingWebsite(_: unknown, url: string) {
             status: false,
             error: 'An unexpected error occurred while pinging the website.',
         }
+    }
+}
+
+export async function getMonitorDetails(monitorId: string) {
+    const user = await auth()
+    if (!user?.token) {
+        redirect('/login')
+    }
+
+    try {
+        const monitorRes = await axios.get(`${API_URL}/website/${monitorId}`, {
+            headers: {
+                Authorization: `Bearer ${user.token}`,
+            },
+        })
+
+        return monitorRes.data as Monitor
+    } catch (error) {
+        console.error('Error fetching monitor:', error)
     }
 }

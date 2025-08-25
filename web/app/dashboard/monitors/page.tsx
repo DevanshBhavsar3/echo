@@ -26,6 +26,7 @@ export default async function DashboardPage() {
         })
 
         data = (res.data as Monitor[]) || []
+        console.log(data)
     } catch (error) {
         console.error('Error fetching data:', error)
         redirect('/error')
@@ -33,7 +34,7 @@ export default async function DashboardPage() {
 
     return (
         <div>
-            <DashboardHeader title="Monitors">
+            <DashboardHeader title={'Monitors'}>
                 <DialogBox
                     label={'Add Monitor'}
                     description={

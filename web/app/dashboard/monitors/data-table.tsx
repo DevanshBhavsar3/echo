@@ -43,16 +43,21 @@ export type Tick = {
     status: Status
 }
 
+export type Region = {
+    regionId: string
+    regionName: string
+}
+
 export type Monitor = {
     id: string
     url: string
     frequency: string
-    regions: string[]
+    regions: Region[]
     createdAt: string
     ticks: Tick[]
 }
 
-const statusStyles = cva('', {
+export const statusStyles = cva('', {
     variants: {
         status: {
             up: 'text-green-400',
@@ -184,7 +189,19 @@ export const columns: ColumnDef<Monitor>[] = [
                                     ></span>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                    <p>{new Date(tick.time).toTimeString()}</p>
+                                    <p>
+                                        {new Date(tick.time).toLocaleDateString(
+                                            'en-IN',
+                                            {
+                                                year: 'numeric',
+                                                month: '2-digit',
+                                                day: '2-digit',
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                                second: '2-digit',
+                                            },
+                                        )}
+                                    </p>
                                 </TooltipContent>
                             </Tooltip>
                         )

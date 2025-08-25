@@ -16,7 +16,7 @@ type WebsiteWithTicks struct {
 	ID        string              `json:"id"`
 	Url       string              `json:"url"`
 	Frequency string              `json:"frequency"`
-	Regions   []string            `json:"regions"`
+	Regions   []store.Region      `json:"regions"`
 	CreatedAt string              `json:"createdAt"`
 	Ticks     []store.WebsiteTick `json:"ticks"`
 }

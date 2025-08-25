@@ -1,11 +1,9 @@
 import { auth } from '@/app/auth'
 import { DashboardHeader } from '@/components/dashboard/header'
 import { redirect } from 'next/navigation'
-import { Monitor } from '../data-table'
-import axios from 'axios'
-import { API_URL } from '@/app/constants'
 import { MonitorInfo } from '@/components/dashboard/monitors/monitor-info'
-import { getTimeRange } from '@/lib/utils'
+import { getTicks } from '@/app/actions/ticks'
+import { getMonitorDetails } from '@/app/actions/website'
 
 export type Tick = {
     time: string
@@ -26,36 +24,31 @@ export default async function MonitorPage({
         return redirect('/login')
     }
 
-    let monitor: Monitor | null = null
-    let ticks: Tick | null = null
+    const monitor = await getMonitorDetails(monitorId)
+    const ticks = await getTicks(monitorId, 30)
 
-    try {
-        const monitorRes = await axios.get(`${API_URL}/website/${monitorId}`, {
-            headers: {
-                Authorization: `Bearer ${user.token}`,
-            },
-        })
-
-        monitor = monitorRes.data as Monitor
-
-        const ticksRes = await axios.get(
-            `${API_URL}/website/ticks/${monitorId}?start=${getTimeRange(3)}&end=${getTimeRange(0)}`,
-            {
-                headers: {
-                    Authorization: `Bearer ${user.token}`,
-                },
-            },
+    if (!monitor) {
+        return (
+            <div className="flex flex-1 flex-col">
+                <DashboardHeader
+                    title="Invalid Monitor"
+                    breadcrumb={['Monitors']}
+                />
+                <div className="flex flex-1 items-center justify-center p-4">
+                    <p className="text-muted-foreground">
+                        The monitor you are looking for does not exist.
+                    </p>
+                </div>
+            </div>
         )
-
-        ticks = (ticksRes.data as Tick[]) || []
-    } catch (error) {
-        console.error('Error fetching data:', error)
-        redirect('/error')
     }
 
     return (
         <div>
-            <DashboardHeader title="Monitor Name" />
+            <DashboardHeader
+                title={new URL(monitor.url).hostname}
+                breadcrumb={['Monitors']}
+            />
             <div className="flex flex-1 flex-col p-2">
                 <MonitorInfo monitor={monitor} ticks={ticks} />
             </div>

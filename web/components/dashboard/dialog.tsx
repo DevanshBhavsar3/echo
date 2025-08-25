@@ -28,11 +28,6 @@ import { CircleCheckBig, CircleX, LoaderCircle } from 'lucide-react'
 import { Monitor } from '@/app/dashboard/monitors/data-table'
 import { fetchRegions } from '@/app/actions/region'
 
-type Region = {
-    id: string
-    name: string
-}
-
 const frequencies = [
     { value: '30s', label: '30 Seconds' },
     { value: '1m', label: '1 Minute' },
@@ -164,38 +159,35 @@ export function DialogBox({
                                     size={18}
                                     className="animate-spin opacity-50"
                                 />
-                            ) : regionState?.regions &&
-                              regionState.regions.length > 0 ? (
+                            ) : regionState && regionState.length > 0 ? (
                                 <div className="grid gap-3">
                                     <Label htmlFor="regions">Regions</Label>
                                     <div className="flex flex-wrap gap-3">
-                                        {regionState.regions.map(
-                                            (region: Region) => (
-                                                <div
-                                                    key={region.id}
-                                                    className="flex items-start gap-3"
-                                                >
-                                                    <Checkbox
-                                                        name="regions"
-                                                        value={region.name}
-                                                        defaultChecked={
-                                                            data &&
-                                                            data.regions.find(
-                                                                (r) =>
-                                                                    r ==
-                                                                    region.name,
-                                                            )
-                                                                ? true
-                                                                : false
-                                                        }
-                                                    />
-                                                    <ReactCountryFlag
-                                                        countryCode={region.name.toUpperCase()}
-                                                        svg
-                                                    />
-                                                </div>
-                                            ),
-                                        )}
+                                        {regionState.map((r) => (
+                                            <div
+                                                key={r.regionId}
+                                                className="flex items-start gap-3"
+                                            >
+                                                <Checkbox
+                                                    name="regions"
+                                                    value={r.regionName}
+                                                    defaultChecked={
+                                                        data &&
+                                                        data.regions.find(
+                                                            (region) =>
+                                                                region.regionName ===
+                                                                r.regionName,
+                                                        )
+                                                            ? true
+                                                            : false
+                                                    }
+                                                />
+                                                <ReactCountryFlag
+                                                    countryCode={r.regionName.toUpperCase()}
+                                                    svg
+                                                />
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
                             ) : (

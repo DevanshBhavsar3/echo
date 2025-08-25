@@ -5,8 +5,8 @@ export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs))
 }
 
-export function getTimeRange(range: number) {
+export function getDateBeforeDays(day: number) {
     return new Date(
-        new Date().setDate(new Date().getDate() - range),
+        new Date().setDate(new Date().getDate() - day),
     ).toISOString()
 }

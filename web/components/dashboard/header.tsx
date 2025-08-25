@@ -5,9 +5,20 @@ import { Button } from '../ui/button'
 import { Separator } from '../ui/separator'
 import { SidebarTrigger } from '../ui/sidebar'
 import { useRouter } from 'next/navigation'
+import {
+    Breadcrumb,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbList,
+    BreadcrumbPage,
+    BreadcrumbSeparator,
+} from '../ui/breadcrumb'
+import Link from 'next/link'
+import { Fragment } from 'react'
 
 interface DashboardHeaderProps {
     title: string
+    breadcrumb?: string[]
     children?: React.ReactNode
 }
 
@@ -22,9 +33,30 @@ export function DashboardHeader(props: DashboardHeaderProps) {
                     orientation="vertical"
                     className="mx-2 data-[orientation=vertical]:h-4"
                 />
-                <h1 className="font-sans text-base font-medium">
-                    {props.title}
-                </h1>
+                <Breadcrumb>
+                    <BreadcrumbList>
+                        {props.breadcrumb?.map((item, index) => (
+                            <Fragment key={index}>
+                                <BreadcrumbItem>
+                                    <BreadcrumbLink asChild>
+                                        <Link
+                                            href={`/dashboard/${item.toLowerCase()}`}
+                                            className="text-foreground hover:text-foreground/80 text-base font-medium hover:underline"
+                                        >
+                                            {item}
+                                        </Link>
+                                    </BreadcrumbLink>
+                                </BreadcrumbItem>
+                                <BreadcrumbSeparator />
+                            </Fragment>
+                        ))}
+                        <BreadcrumbItem>
+                            <BreadcrumbPage className="text-foreground text-base font-medium">
+                                {props.title}
+                            </BreadcrumbPage>
+                        </BreadcrumbItem>
+                    </BreadcrumbList>
+                </Breadcrumb>
                 <div className="ml-auto flex items-center gap-2">
                     <Button
                         variant="ghost"

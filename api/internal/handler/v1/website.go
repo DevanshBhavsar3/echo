@@ -113,10 +113,7 @@ func (h *WebsiteHandler) GetAllWebsites(c *fiber.Ctx) error {
 			Frequency: pkg.ShortDuration(w.Frequency),
 			CreatedAt: w.CreatedAt.Format(time.RFC3339),
 			Ticks:     ticks,
-		}
-
-		for _, r := range w.Regions {
-			website.Regions = append(website.Regions, r.Name)
+			Regions:   w.Regions,
 		}
 
 		response = append(response, website)
