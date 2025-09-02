@@ -139,21 +139,27 @@ func (s *WebsiteTickStorage) BatchInsertTicks(ctx context.Context, ticks []Websi
 	return nil
 }
 
-func (s *WebsiteTickStorage) GetTicks(ctx context.Context, websiteID string, start time.Time, end time.Time) ([]Tick, error) {
+func (s *WebsiteTickStorage) GetTicks(ctx context.Context, websiteID string, days string, region string) ([]Tick, error) {
 	query := `
-		SELECT wt.id, wt.time, wt.response_time_ms, wt.status, r.name
-		FROM "website_tick" wt
-		JOIN "region" r ON wt.region_id = r.id
-		WHERE website_id = $1
-		AND time >= $2
-		AND time <= $3
-		ORDER BY wt.time DESC
+		SELECT 
+			time_bucket('15 minutes', wt.time) as bucket, 
+			avg(wt.response_time_ms)::numeric::integer as avg_respones_times
+		FROM "website_tick" wt 
+		JOIN "region" r ON wt.region_id = r.id 
+		WHERE 
+			wt.website_id = $1
+			AND wt.time >= NOW() - ($2::int * INTERVAL '1 day')
+			AND wt.time <= NOW()
+			AND r.name = $3
+		GROUP BY bucket 
+		ORDER BY bucket DESC
+		LIMIT 500
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	rows, err := s.db.Query(ctx, query, websiteID, start, end)
+	rows, err := s.db.Query(ctx, query, websiteID, days, region)
 	if err != nil {
 		switch {
 		case errors.Is(err, pgx.ErrNoRows):
@@ -170,7 +176,7 @@ func (s *WebsiteTickStorage) GetTicks(ctx context.Context, websiteID string, sta
 		var tickTime pgtype.Timestamptz
 		var tick Tick
 
-		err := rows.Scan(&tick.WebsiteTick.ID, &tickTime, &tick.ResponseTimeMS, &tick.WebsiteTick.Status, &tick.Region.Name)
+		err := rows.Scan(&tickTime, &tick.ResponseTimeMS)
 		if err != nil {
 			return nil, err
 		}

@@ -147,7 +147,15 @@ func (h *WebsiteHandler) GetWebsiteById(c *fiber.Ctx) error {
 		}
 	}
 
-	return c.Status(http.StatusOK).JSON(website)
+	response := types.GetWebsiteByIdResponse{
+		ID:        website.ID,
+		Url:       website.Url,
+		Frequency: pkg.ShortDuration(website.Frequency),
+		Regions:   website.Regions,
+		CreatedAt: website.CreatedAt.Format(time.RFC3339),
+	}
+
+	return c.Status(http.StatusOK).JSON(response)
 }
 
 func (h *WebsiteHandler) DeleteWebsite(c *fiber.Ctx) error {
@@ -253,21 +261,10 @@ func (h *WebsiteHandler) GetTicks(c *fiber.Ctx) error {
 		})
 	}
 
-	start, err := time.Parse(time.RFC3339, c.Query("start"))
-	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid time range.",
-		})
-	}
+	days := c.Query("days")
+	region := c.Query("region")
 
-	end, err := time.Parse(time.RFC3339, c.Query("end"))
-	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid time range.",
-		})
-	}
-
-	ticks, err := h.tickStorage.GetTicks(c.Context(), websiteId, start, end)
+	ticks, err := h.tickStorage.GetTicks(c.Context(), websiteId, days, region)
 	if err != nil {
 		switch {
 		case errors.Is(err, store.ErrNotFound):

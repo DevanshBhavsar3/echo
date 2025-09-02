@@ -60,7 +60,7 @@ export type Monitor = {
 export const statusStyles = cva('', {
     variants: {
         status: {
-            up: 'text-green-400',
+            up: 'text-green-500',
             down: 'text-red-400',
             unknown: 'text-yellow-400',
         },

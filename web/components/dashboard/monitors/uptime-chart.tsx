@@ -1,7 +1,8 @@
 'use client'
 
+import { getTicks } from '@/app/actions/ticks'
 import { Tick } from '@/app/dashboard/monitors/[monitorId]/page'
-import { Monitor, statusStyles } from '@/app/dashboard/monitors/data-table'
+import { Monitor } from '@/app/dashboard/monitors/data-table'
 import {
     Card,
     CardAction,
@@ -24,8 +25,9 @@ import {
     SelectValue,
 } from '@/components/ui/select'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { cn, getDateBeforeDays } from '@/lib/utils'
-import { useState } from 'react'
+import { frequencyToMs } from '@/lib/utils'
+import { LoaderCircle } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import ReactCountryFlag from 'react-country-flag'
 import { CartesianGrid, Line, LineChart, XAxis } from 'recharts'
 
@@ -37,28 +39,32 @@ const chartConfig = {
 } satisfies ChartConfig
 
 interface UptimeChartProps {
-    ticks: Tick[]
     monitor: Monitor
 }
 
-export function UptimeChart({ ticks, monitor }: UptimeChartProps) {
-    const [timeRange, setTimeRange] = useState('1d')
+export function UptimeChart({ monitor }: UptimeChartProps) {
+    const [data, setData] = useState<Tick[]>([])
+    const [timeRange, setTimeRange] = useState('1')
     const [region, setRegion] = useState(monitor.regions[0].regionName)
 
-    const filteredData = ticks.filter((tick) => {
-        const date = new Date(tick.time)
+    useEffect(() => {
+        async function fetchTick() {
+            const ticks = await getTicks(
+                monitor.id,
+                parseInt(timeRange),
+                region,
+            )
 
-        let daysToSubtract = 1
-        if (timeRange === '7d') {
-            daysToSubtract = 7
-        } else if (timeRange === '30d') {
-            daysToSubtract = 30
+            setData(ticks)
         }
 
-        const startDate = new Date(getDateBeforeDays(daysToSubtract))
+        fetchTick()
 
-        return date >= startDate
-    })
+        const intervalMs = frequencyToMs(monitor.frequency)
+        const interval = setInterval(fetchTick, intervalMs)
+
+        return () => clearInterval(interval)
+    }, [timeRange, region, monitor])
 
     return (
         <Card className="@container/card">
@@ -102,9 +108,9 @@ export function UptimeChart({ ticks, monitor }: UptimeChartProps) {
                         variant="outline"
                         className="hidden *:data-[slot=toggle-group-item]:!px-4 @[767px]/card:flex"
                     >
-                        <ToggleGroupItem value="1d">Day</ToggleGroupItem>
-                        <ToggleGroupItem value="7d">Week</ToggleGroupItem>
-                        <ToggleGroupItem value="30d">Month</ToggleGroupItem>
+                        <ToggleGroupItem value="1">Day</ToggleGroupItem>
+                        <ToggleGroupItem value="7">Week</ToggleGroupItem>
+                        <ToggleGroupItem value="30">Month</ToggleGroupItem>
                     </ToggleGroup>
                     <Select value={timeRange} onValueChange={setTimeRange}>
                         <SelectTrigger
@@ -115,109 +121,108 @@ export function UptimeChart({ ticks, monitor }: UptimeChartProps) {
                             <SelectValue placeholder="Day" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="1d">Day</SelectItem>
-                            <SelectItem value="7d">Week</SelectItem>
-                            <SelectItem value="30d">Month</SelectItem>
+                            <SelectItem value="1">Day</SelectItem>
+                            <SelectItem value="7">Week</SelectItem>
+                            <SelectItem value="30">Month</SelectItem>
                         </SelectContent>
                     </Select>
                 </CardAction>
             </CardHeader>
             <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
-                <ChartContainer
-                    config={chartConfig}
-                    className="aspect-auto h-[250px] w-full"
-                >
-                    <LineChart
-                        data={filteredData}
-                        margin={{
-                            left: 12,
-                            right: 12,
-                        }}
+                {data.length <= 0 ? (
+                    <div className="flex aspect-auto h-[250px] w-full items-center justify-center">
+                        <LoaderCircle
+                            size={18}
+                            className="animate-spin opacity-50"
+                        />
+                    </div>
+                ) : (
+                    <ChartContainer
+                        config={chartConfig}
+                        className="aspect-auto h-[250px] w-full"
                     >
-                        <CartesianGrid vertical={false} />
-                        <XAxis
-                            dataKey="time"
-                            tickLine={false}
-                            axisLine={false}
-                            tickMargin={8}
-                            minTickGap={32}
-                            tickFormatter={(value) => {
-                                const date = new Date(value)
-                                return date.toLocaleDateString('en-US', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                })
+                        <LineChart
+                            data={data}
+                            margin={{
+                                left: 12,
+                                right: 12,
                             }}
-                        />
-                        <ChartTooltip
-                            cursor={false}
-                            content={
-                                <ChartTooltipContent
-                                    labelFormatter={(value) => {
-                                        return new Date(
-                                            value,
-                                        ).toLocaleDateString('en-IN', {
-                                            year: 'numeric',
-                                            month: 'short',
-                                            day: 'numeric',
-                                            hour: '2-digit',
-                                            minute: '2-digit',
-                                            second: '2-digit',
-                                        })
-                                    }}
-                                    formatter={(value, name, item) => (
-                                        <>
-                                            <div
-                                                className="h-2.5 w-2.5 shrink-0 rounded-[2px] bg-(--color-bg)"
-                                                style={
+                        >
+                            <CartesianGrid vertical={false} />
+                            <XAxis
+                                dataKey="time"
+                                tickLine={false}
+                                axisLine={false}
+                                tickMargin={8}
+                                minTickGap={32}
+                                tickFormatter={(value) => {
+                                    const date = new Date(value)
+                                    return date.toLocaleDateString('en-US', {
+                                        month: 'short',
+                                        day: 'numeric',
+                                    })
+                                }}
+                            />
+                            <ChartTooltip
+                                cursor={false}
+                                content={
+                                    <ChartTooltipContent
+                                        labelFormatter={(value) => {
+                                            const dateObj = new Date(value)
+                                            const time =
+                                                dateObj.toLocaleTimeString(
+                                                    'en-IN',
                                                     {
-                                                        '--color-bg': `var(--color-${name})`,
-                                                    } as React.CSSProperties
-                                                }
-                                            />
-                                            {chartConfig[
-                                                name as keyof typeof chartConfig
-                                            ]?.label || name}
-                                            <div className="text-foreground ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums">
-                                                {value}
-                                                <span className="text-muted-foreground font-normal">
-                                                    ms
-                                                </span>
-                                            </div>
-                                            <div className="text-foreground mt-1.5 flex basis-full items-center border-t pt-1.5 text-xs font-medium">
-                                                Status
+                                                        hour: '2-digit',
+                                                        minute: '2-digit',
+                                                    },
+                                                )
+                                            const date =
+                                                dateObj.toLocaleDateString(
+                                                    'en-IN',
+                                                    {
+                                                        year: 'numeric',
+                                                        month: 'short',
+                                                        day: 'numeric',
+                                                    },
+                                                )
+
+                                            return `${time}, ${date}`
+                                        }}
+                                        formatter={(value, name) => (
+                                            <>
                                                 <div
-                                                    className={cn(
-                                                        'text-foreground ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums',
-                                                        statusStyles({
-                                                            status: item.payload
-                                                                .status,
-                                                            intent: 'text',
-                                                        }),
-                                                    )}
-                                                >
-                                                    {item.payload.status
-                                                        .charAt(0)
-                                                        .toUpperCase() +
-                                                        item.payload.status.slice(
-                                                            1,
-                                                        )}
+                                                    className="h-2.5 w-2.5 shrink-0 rounded-[2px] bg-(--color-bg)"
+                                                    style={
+                                                        {
+                                                            '--color-bg': `var(--color-${name})`,
+                                                        } as React.CSSProperties
+                                                    }
+                                                />
+                                                {chartConfig[
+                                                    name as keyof typeof chartConfig
+                                                ]?.label || name}
+                                                <div className="text-foreground ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums">
+                                                    {value}
+                                                    <span className="text-muted-foreground font-normal">
+                                                        ms
+                                                    </span>
                                                 </div>
-                                            </div>
-                                        </>
-                                    )}
-                                    indicator="dot"
-                                />
-                            }
-                        />
-                        <Line
-                            dataKey="responseTime"
-                            type="step"
-                            stroke="var(--chart-1)"
-                            dot={false}
-                        />
-                    </LineChart>
-                </ChartContainer>
+                                            </>
+                                        )}
+                                        indicator="dot"
+                                    />
+                                }
+                            />
+                            <Line
+                                dataKey="responseTime"
+                                type="step"
+                                stroke="var(--chart-1)"
+                                dot={false}
+                            />
+                        </LineChart>
+                    </ChartContainer>
+                )}
             </CardContent>
         </Card>
     )

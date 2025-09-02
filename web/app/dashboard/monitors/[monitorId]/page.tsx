@@ -2,14 +2,11 @@ import { auth } from '@/app/auth'
 import { DashboardHeader } from '@/components/dashboard/header'
 import { redirect } from 'next/navigation'
 import { MonitorInfo } from '@/components/dashboard/monitors/monitor-info'
-import { getTicks } from '@/app/actions/ticks'
 import { getMonitorDetails } from '@/app/actions/website'
 
 export type Tick = {
     time: string
     responseTime: string
-    status: string
-    regionName: string
 }
 
 export default async function MonitorPage({
@@ -25,7 +22,6 @@ export default async function MonitorPage({
     }
 
     const monitor = await getMonitorDetails(monitorId)
-    const ticks = await getTicks(monitorId, 30)
 
     if (!monitor) {
         return (
@@ -50,7 +46,7 @@ export default async function MonitorPage({
                 breadcrumb={['Monitors']}
             />
             <div className="flex flex-1 flex-col p-2">
-                <MonitorInfo monitor={monitor} ticks={ticks} />
+                <MonitorInfo monitor={monitor} />
             </div>
         </div>
     )

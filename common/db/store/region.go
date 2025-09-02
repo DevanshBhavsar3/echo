@@ -9,8 +9,8 @@ import (
 )
 
 type Region struct {
-	ID   *string `json:"regionId"`
-	Name string  `json:"regionName"`
+	ID   *string `json:"regionId,omitempty"`
+	Name string  `json:"regionName,omitempty"`
 }
 
 type RegionStorage struct {

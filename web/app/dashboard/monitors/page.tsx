@@ -26,7 +26,6 @@ export default async function DashboardPage() {
         })
 
         data = (res.data as Monitor[]) || []
-        console.log(data)
     } catch (error) {
         console.error('Error fetching data:', error)
         redirect('/error')

@@ -23,6 +23,14 @@ type WebsiteWithTicks struct {
 
 type GetAllWebsitesResponse = []WebsiteWithTicks
 
+type GetWebsiteByIdResponse struct {
+	ID        string         `json:"id"`
+	Url       string         `json:"url"`
+	Frequency string         `json:"frequency"`
+	Regions   []store.Region `json:"regions"`
+	CreatedAt string         `json:"createdAt"`
+}
+
 type UpdateWebsiteBody struct {
 	Url       string   `json:"url" validate:"url"`
 	Frequency string   `json:"frequency" validate:"oneof=30s 1m 3m 5m"`

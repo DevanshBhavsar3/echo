@@ -51,11 +51,12 @@ services:
           ignore:
             - bin
             - tmp
-        - action: rebuild
+        - action: sync+restart
           path: ./common
           target: /app/common
-        - action: rebuild
+        - action: sync+restart
           path: ./api/go.mod
+          target: /app/api
 
   publisher:
     build:

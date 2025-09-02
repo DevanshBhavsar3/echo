@@ -73,7 +73,6 @@ func (s *WebsiteStorage) GetWebsiteById(ctx context.Context, id string, userId s
             w.url,
             w.frequency,
             w.created_at,
-            w.created_by,
             r.id,
             r.name
         FROM 
@@ -110,7 +109,6 @@ func (s *WebsiteStorage) GetWebsiteById(ctx context.Context, id string, userId s
 			&website.Url,
 			&website.Frequency,
 			&website.CreatedAt,
-			&website.CreatedBy,
 			&region.ID,
 			&region.Name,
 		)
