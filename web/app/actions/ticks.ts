@@ -1,11 +1,15 @@
-"use server"
+'use server'
 
 import { API_URL } from '../constants'
 import { Tick } from '../dashboard/monitors/[monitorId]/page'
 import { auth } from '../auth'
 import axios from 'axios'
 
-export async function getTicks(monitorId: string, timeRange: number, region: string) {
+export async function getTicks(
+    monitorId: string,
+    timeRange: number,
+    region: string,
+) {
     const user = await auth()
     if (!user?.token) {
         return []

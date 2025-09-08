@@ -1,18 +1,18 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
-import { Geist, Space_Mono } from 'next/font/google'
+import { Geist_Mono, Inter } from 'next/font/google'
 import { Toaster } from '@/components/ui/sonner'
 
-const spaceMono = Space_Mono({
-    weight: ['400', '700'],
+const inter = Inter({
+    weight: ['500', '700'],
     subsets: ['latin'],
-    variable: '--font-space-mono',
+    variable: '--font-inter',
 })
 
-const geist = Geist({
+const geistMono = Geist_Mono({
     subsets: ['latin'],
-    variable: '--font-geist-sans',
+    variable: '--font-geist-mono',
 })
 
 export const metadata: Metadata = {
@@ -29,7 +29,7 @@ export default function RootLayout({
     return (
         <html
             lang="en"
-            className={`${spaceMono.className} ${geist.className}`}
+            className={`${inter.variable} ${geistMono.variable}`}
             suppressHydrationWarning
         >
             <body>

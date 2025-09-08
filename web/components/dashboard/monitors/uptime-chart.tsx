@@ -55,6 +55,8 @@ export function UptimeChart({ monitor }: UptimeChartProps) {
                 region,
             )
 
+            console.log(ticks)
+
             setData(ticks)
         }
 

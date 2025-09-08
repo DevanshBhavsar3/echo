@@ -22,7 +22,7 @@ import {
     DropdownMenuItem,
     DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
-import { Disc2, MoreHorizontal } from 'lucide-react'
+import { Check, Disc2, Loader, MoreHorizontal, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { deleteWebsite, editWebsite } from '../../actions/website'
@@ -35,6 +35,7 @@ import {
     TooltipTrigger,
     TooltipContent,
 } from '@/components/ui/tooltip'
+import { Badge } from '@/components/ui/badge'
 
 export type Status = 'up' | 'down' | 'unknown'
 
@@ -86,7 +87,7 @@ export const statusStyles = cva('', {
 export const columns: ColumnDef<Monitor>[] = [
     {
         accessorKey: 'url',
-        header: 'Monitor',
+        header: 'Url',
         cell: ({ row }) => {
             const url = row.getValue('url') as string
             const ticks = row.getValue('ticks') as Tick[]
@@ -101,44 +102,44 @@ export const columns: ColumnDef<Monitor>[] = [
 
             return (
                 <div className="flex items-center gap-3">
-                    {
-                        <span
-                            className={cn(
-                                'flex size-3 items-center justify-center rounded-full opacity-70',
-                                statusStyles({ status, intent: 'bg' }),
-                            )}
-                        ></span>
-                    }
-                    <div className="grid gap-1">
-                        <a
-                            href={url}
-                            target="_blank"
-                            className="text-md w-fit hover:underline"
-                        >
-                            {new URL(url).hostname}
-                        </a>
-                        <div className="flex items-baseline gap-2">
-                            <span
-                                className={cn(
-                                    'flex items-center text-xs font-medium',
-                                    statusStyles({ status, intent: 'text' }),
-                                )}
+                    <a
+                        href={url}
+                        target="_blank"
+                        className="text-md w-fit hover:underline"
+                    >
+                        {new URL(url).hostname}
+                    </a>
+                    <Tooltip>
+                        <TooltipTrigger>
+                            <Badge
+                                variant={'outline'}
+                                className="text-muted-foreground px-1.5"
                             >
+                                {status === 'up' ? (
+                                    <Check
+                                        size={12}
+                                        className="fill-green-500"
+                                    />
+                                ) : status == 'down' ? (
+                                    <X size={12} className="fill-red-500" />
+                                ) : (
+                                    <Loader size={12} className="" />
+                                )}
+                            </Badge>
+
+                            <span className="flex items-center text-xs font-medium">
                                 {status.charAt(0).toUpperCase() +
                                     status.slice(1)}
                             </span>
-                            <span className="text-muted-foreground text-xs">
-                                •
-                            </span>
-                            <span className="text-muted-foreground text-xs">
-                                Last checked{' '}
-                                <LastCheckedCell
-                                    ticks={ticks}
-                                    createdAt={createdAt}
-                                />
-                            </span>
-                        </div>
-                    </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <LastCheckedCell
+                                ticks={ticks}
+                                createdAt={createdAt}
+                                className="text-background gap flex items-center text-xs"
+                            />
+                        </TooltipContent>
+                    </Tooltip>
                 </div>
             )
         },
@@ -294,12 +295,15 @@ export function DataTable({ data }: { data: Monitor[] }) {
     return (
         <div className="border">
             <Table>
-                <TableHeader className="bg-muted sticky top-0 z-10 font-sans">
+                <TableHeader className="bg-muted sticky top-0 z-10">
                     {table.getHeaderGroups().map((headerGroup) => (
                         <TableRow key={headerGroup.id}>
                             {headerGroup.headers.map((header) => {
                                 return (
-                                    <TableHead key={header.id}>
+                                    <TableHead
+                                        key={header.id}
+                                        className="text-muted-foreground font-mono uppercase"
+                                    >
                                         {header.isPlaceholder
                                             ? null
                                             : flexRender(
@@ -389,6 +393,7 @@ function LastCheckedCell({
 
     return (
         <span className={className} {...props}>
+            Last Checked{' '}
             {Math.floor(elapsedTime / 60) > 0
                 ? `${Math.floor(elapsedTime / 60)} minute(s) ago`
                 : `${Math.floor(elapsedTime % 3600)} second(s) ago`}

@@ -12,7 +12,7 @@ export default async function HomePage() {
             <Navbar />
             <main className="flex min-h-svh w-full max-w-md flex-col items-center justify-center md:max-w-7xl">
                 <div className="grid h-full w-full gap-6">
-                    {'USER::EMAIL: ' + user?.user.name}
+                    {'EMAIL: ' + user?.user.name}
                     <HoverBorderGradient
                         as={'text'}
                         className="bg-background text-foreground flex items-center"

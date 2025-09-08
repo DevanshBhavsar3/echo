@@ -141,19 +141,17 @@ func (s *WebsiteTickStorage) BatchInsertTicks(ctx context.Context, ticks []Websi
 
 func (s *WebsiteTickStorage) GetTicks(ctx context.Context, websiteID string, days string, region string) ([]Tick, error) {
 	query := `
-		SELECT 
-			time_bucket('15 minutes', wt.time) as bucket, 
+		SELECT
+			time_bucket('5 minutes', wt.time) as bucket,
 			avg(wt.response_time_ms)::numeric::integer as avg_respones_times
-		FROM "website_tick" wt 
-		JOIN "region" r ON wt.region_id = r.id 
-		WHERE 
+		FROM "website_tick" wt
+		JOIN "region" r ON wt.region_id = r.id
+		WHERE
 			wt.website_id = $1
-			AND wt.time >= NOW() - ($2::int * INTERVAL '1 day')
-			AND wt.time <= NOW()
+			AND wt.time BETWEEN NOW() - ($2::int * INTERVAL '1 day') AND NOW()
 			AND r.name = $3
-		GROUP BY bucket 
-		ORDER BY bucket DESC
-		LIMIT 500
+		GROUP BY bucket
+		ORDER BY bucket ASC
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
@@ -185,8 +183,6 @@ func (s *WebsiteTickStorage) GetTicks(ctx context.Context, websiteID string, day
 
 		ticks = append(ticks, tick)
 	}
-
-	slices.Reverse(ticks)
 
 	return ticks, nil
 }

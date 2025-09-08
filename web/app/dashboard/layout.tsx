@@ -8,8 +8,10 @@ export default function DashboardLayout({
 }) {
     return (
         <SidebarProvider>
-            <DashboardSidebar variant="sidebar" />
-            <SidebarInset>{children}</SidebarInset>
+            <DashboardSidebar variant="inset" />
+            <SidebarInset className="space-y-12 px-18 pt-10">
+                {children}
+            </SidebarInset>
         </SidebarProvider>
     )
 }

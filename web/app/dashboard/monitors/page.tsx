@@ -8,6 +8,8 @@ import { DialogBox } from '@/components/dashboard/dialog'
 import { createWebsite } from '../../actions/website'
 import { DialogTrigger } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Search } from 'lucide-react'
 
 export default async function DashboardPage() {
     const user = await auth()
@@ -32,26 +34,40 @@ export default async function DashboardPage() {
     }
 
     return (
-        <div>
-            <DashboardHeader title={'Monitors'}>
-                <DialogBox
-                    label={'Add Monitor'}
-                    description={
-                        'Add a new monitor to track the uptime of your website.'
-                    }
-                    onSubmitAction={createWebsite}
-                >
-                    <DialogTrigger asChild>
-                        <Button size="sm" className="hidden sm:flex">
-                            Add Monitor
-                        </Button>
-                    </DialogTrigger>
-                </DialogBox>
+        <>
+            <DashboardHeader>
+                <h1 className="text-foreground text-4xl font-medium">
+                    Monitor
+                </h1>
+                <div className="ml-auto flex items-center gap-2">
+                    <Input
+                        type="text"
+                        placeholder="Search"
+                        icon={<Search size={18} />}
+                    />
+
+                    <DialogBox
+                        label={'Add Monitor'}
+                        description={
+                            'Add a new monitor to track the uptime of your website.'
+                        }
+                        onSubmitAction={createWebsite}
+                    >
+                        <DialogTrigger asChild>
+                            <Button
+                                size="lg"
+                                className="hidden text-sm font-medium sm:flex"
+                            >
+                                Add Monitor
+                            </Button>
+                        </DialogTrigger>
+                    </DialogBox>
+                </div>
             </DashboardHeader>
 
-            <div className="flex flex-1 flex-col p-2">
+            <div className="flex flex-1 flex-col">
                 <DataTable data={data} />
             </div>
-        </div>
+        </>
     )
 }
