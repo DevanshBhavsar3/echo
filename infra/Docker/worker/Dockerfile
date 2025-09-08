@@ -6,9 +6,11 @@ COPY go.* ./
 COPY ./worker/go.* ./worker/
 COPY ./common ./common
 
-RUN cd ./worker && go mod tidy
+RUN go work edit -dropuse="./api" -dropuse="./publisher" -dropuse="./db-worker" go.work
 
-COPY . .
+RUN cd ./worker && go mod download
+
+COPY ./worker ./worker
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./worker/bin/echo-worker ./worker/cmd/main.go
 
