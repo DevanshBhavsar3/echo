@@ -1,6 +1,6 @@
 'use server'
 
-import { websiteSchema } from '@/lib/types'
+import { Metrics, websiteSchema } from '@/lib/types'
 import axios, { AxiosError } from 'axios'
 import { API_URL } from '../constants'
 import { auth } from '../auth'
@@ -152,6 +152,25 @@ export async function getMonitorDetails(monitorId: string) {
 
         return monitorRes.data as Monitor
     } catch (error) {
-        console.error('Error fetching monitor:', error)
+        console.error('Error fetching monitor details:', error)
+    }
+}
+
+export async function getMonitorMetrics(monitorId: string, region: string) {
+    const user = await auth()
+    if (!user?.token) {
+        redirect('/login')
+    }
+
+    try {
+        const metricRes = await axios.get(`${API_URL}/website/metrics/${monitorId}?region=${region}`, {
+            headers: {
+                Authorization: `Bearer ${user.token}`,
+            },
+        })
+
+        return metricRes.data as Metrics
+    } catch (error) {
+        console.error('Error fetching monitor metrics:', error)
     }
 }

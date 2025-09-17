@@ -2,7 +2,8 @@
 
 import { getTicks } from '@/app/actions/ticks'
 import { Tick } from '@/app/dashboard/monitors/[monitorId]/page'
-import { Monitor } from '@/app/dashboard/monitors/data-table'
+import { Monitor, Region } from '@/app/dashboard/monitors/data-table'
+import { RegionSelect } from '@/components/region-select'
 import {
     Card,
     CardAction,
@@ -45,17 +46,15 @@ interface UptimeChartProps {
 export function UptimeChart({ monitor }: UptimeChartProps) {
     const [data, setData] = useState<Tick[]>([])
     const [timeRange, setTimeRange] = useState('1')
-    const [region, setRegion] = useState(monitor.regions[0].regionName)
+    const [region, setRegion] = useState<Region>(monitor.regions[0])
 
     useEffect(() => {
         async function fetchTick() {
             const ticks = await getTicks(
                 monitor.id,
                 parseInt(timeRange),
-                region,
+                region.regionName,
             )
-
-            console.log(ticks)
 
             setData(ticks)
         }
@@ -73,32 +72,11 @@ export function UptimeChart({ monitor }: UptimeChartProps) {
             <CardHeader>
                 <CardTitle>Uptime</CardTitle>
                 <CardDescription>
-                    <Select value={region} onValueChange={setRegion}>
-                        <SelectTrigger
-                            className="flex w-40 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate"
-                            size="sm"
-                            aria-label="Select a value"
-                        >
-                            <SelectValue placeholder="Select Region" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {monitor.regions.map((r) => (
-                                <SelectItem
-                                    key={r.regionId}
-                                    value={r.regionName}
-                                    className="flex items-center"
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <ReactCountryFlag
-                                            countryCode={r.regionName.toUpperCase()}
-                                            svg
-                                        />
-                                        {r.regionName}
-                                    </div>
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <RegionSelect
+                        regions={monitor.regions}
+                        region={region}
+                        setRegion={setRegion}
+                    />
                 </CardDescription>
                 <CardAction>
                     <ToggleGroup
@@ -132,11 +110,8 @@ export function UptimeChart({ monitor }: UptimeChartProps) {
             </CardHeader>
             <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
                 {data.length <= 0 ? (
-                    <div className="flex aspect-auto h-[250px] w-full items-center justify-center">
-                        <LoaderCircle
-                            size={18}
-                            className="animate-spin opacity-50"
-                        />
+                    <div className="text-muted-foreground flex aspect-auto h-[250px] w-full items-center justify-center">
+                        Uptime data not available
                     </div>
                 ) : (
                     <ChartContainer

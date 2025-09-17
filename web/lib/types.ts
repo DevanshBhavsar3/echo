@@ -1,3 +1,4 @@
+import { Monitor } from '@/app/dashboard/monitors/data-table'
 import { z } from 'zod'
 
 export const registerSchema = z.object({
@@ -34,3 +35,22 @@ export const websiteSchema = z.object({
         .array(z.string())
         .min(1, 'At least one region must be selected.'),
 })
+
+export type MetricData = {
+    current: string,
+    trend?: string
+}
+
+export enum Latency {
+    P99 = 'P99',
+    P95 = 'P95',
+    P90 = 'P90',
+}
+
+export type Latencies = Record<Latency, MetricData>
+
+export type Metrics = {
+    response: Latencies
+    status: Latencies
+    availability: Latencies
+}

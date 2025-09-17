@@ -1,8 +1,28 @@
 import { auth } from '@/app/auth'
-import { DashboardHeader } from '@/components/dashboard/header'
 import { redirect } from 'next/navigation'
-import { MonitorInfo } from '@/components/dashboard/monitors/monitor-info'
-import { getMonitorDetails } from '@/app/actions/website'
+import { getMonitorDetails, getMonitorMetrics } from '@/app/actions/website'
+
+import {
+    ChevronLeft,
+    Globe,
+    Link as LinkIcon,
+    Settings,
+    TriangleAlert,
+} from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { UptimeChart } from '@/components/dashboard/monitors/uptime-chart'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select'
+import { MetricCard } from '@/components/dashboard/monitors/metric-card'
+import Link from 'next/link'
+import { MetricsSection } from '@/components/dashboard/monitors/metrics'
 
 export type Tick = {
     time: string
@@ -26,28 +46,55 @@ export default async function MonitorPage({
     if (!monitor) {
         return (
             <div className="flex flex-1 flex-col">
-                <DashboardHeader
-                    title="Invalid Monitor"
-                    breadcrumb={['Monitors']}
-                />
-                <div className="flex flex-1 items-center justify-center p-4">
-                    <p className="text-muted-foreground">
-                        The monitor you are looking for does not exist.
-                    </p>
+                <Link
+                    href={'/dashboard/monitors'}
+                    className="flex items-center hover:underline"
+                >
+                    <ChevronLeft size={16} />
+                    Monitors
+                </Link>
+                <div className="text-muted-foreground flex flex-1 flex-col items-center justify-center gap-3 p-4">
+                    <TriangleAlert size={52} />
+                    <p>The monitor you are looking for does not exist.</p>
                 </div>
             </div>
         )
     }
 
     return (
-        <div>
-            <DashboardHeader
-                title={new URL(monitor.url).hostname}
-                breadcrumb={['Monitors']}
-            />
-            <div className="flex flex-1 flex-col p-2">
-                <MonitorInfo monitor={monitor} />
+        <>
+            <header className="flex w-full shrink-0 items-center gap-2">
+                <div className="flex w-full flex-col items-start justify-center">
+                    <h2 className="text-muted-foreground flex items-center gap-1 font-mono uppercase">
+                        <Globe size={16} />
+                        Monitor
+                    </h2>
+                    <div className="flex w-full items-center justify-between">
+                        <h1 className="text-foreground flex items-center gap-3 text-3xl font-medium">
+                            {new URL(monitor.url).hostname}
+                            <a
+                                href={monitor.url}
+                                target="_blank"
+                                className="text-muted-foreground hover:text-foreground"
+                            >
+                                <LinkIcon />
+                            </a>
+                        </h1>
+                        <Button
+                            size="lg"
+                            variant={'outline'}
+                            className="hidden font-medium sm:flex"
+                        >
+                            <Settings />
+                            Settings
+                        </Button>
+                    </div>
+                </div>
+            </header>
+            <div className="flex flex-col gap-18">
+                <UptimeChart monitor={monitor} />
+                <MetricsSection monitor={monitor} />
             </div>
-        </div>
+        </>
     )
 }

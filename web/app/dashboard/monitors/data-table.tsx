@@ -22,7 +22,15 @@ import {
     DropdownMenuItem,
     DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
-import { Check, Disc2, Loader, MoreHorizontal, X } from 'lucide-react'
+import {
+    Check,
+    Disc2,
+    Loader,
+    MoreHorizontal,
+    X,
+    CircleCheck,
+    CircleX,
+} from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { deleteWebsite, editWebsite } from '../../actions/website'
@@ -37,7 +45,7 @@ import {
 } from '@/components/ui/tooltip'
 import { Badge } from '@/components/ui/badge'
 
-export type Status = 'up' | 'down' | 'unknown'
+export type Status = 'up' | 'down' | 'processing'
 
 export type Tick = {
     time: string
@@ -63,7 +71,7 @@ export const statusStyles = cva('', {
         status: {
             up: 'text-green-500',
             down: 'text-red-400',
-            unknown: 'text-yellow-400',
+            processing: 'text-yellow-400',
         },
         intent: {
             text: '',
@@ -73,13 +81,13 @@ export const statusStyles = cva('', {
     compoundVariants: [
         { status: 'up', intent: 'text', className: 'text-green-500' },
         { status: 'down', intent: 'text', className: 'text-red-500' },
-        { status: 'unknown', intent: 'text', className: 'text-yellow-500' },
+        { status: 'processing', intent: 'text', className: 'text-yellow-500' },
         { status: 'up', intent: 'bg', className: 'bg-green-400' },
         { status: 'down', intent: 'bg', className: 'bg-red-400' },
-        { status: 'unknown', intent: 'bg', className: 'bg-yellow-400' },
+        { status: 'processing', intent: 'bg', className: 'bg-gray-400' },
     ],
     defaultVariants: {
-        status: 'unknown',
+        status: 'processing',
         intent: 'text',
     },
 })
@@ -95,7 +103,7 @@ export const columns: ColumnDef<Monitor>[] = [
             let status: Status
 
             if (!ticks || ticks.length === 0) {
-                status = 'unknown'
+                status = 'processing'
             } else {
                 status = ticks[ticks.length - 1].status
             }
@@ -113,24 +121,26 @@ export const columns: ColumnDef<Monitor>[] = [
                         <TooltipTrigger>
                             <Badge
                                 variant={'outline'}
-                                className="text-muted-foreground px-1.5"
+                                className="text-muted-foreground items-center gap-2 rounded-full px-1.5 text-xs font-medium"
                             >
                                 {status === 'up' ? (
-                                    <Check
+                                    <CircleCheck
                                         size={12}
-                                        className="fill-green-500"
+                                        className="text-green-500"
                                     />
                                 ) : status == 'down' ? (
-                                    <X size={12} className="fill-red-500" />
+                                    <span className="text-red-500">
+                                        <CircleX size={12} />
+                                    </span>
                                 ) : (
-                                    <Loader size={12} className="" />
+                                    <Loader
+                                        size={12}
+                                        className="animate-spin"
+                                    />
                                 )}
-                            </Badge>
-
-                            <span className="flex items-center text-xs font-medium">
                                 {status.charAt(0).toUpperCase() +
                                     status.slice(1)}
-                            </span>
+                            </Badge>
                         </TooltipTrigger>
                         <TooltipContent>
                             <LastCheckedCell
@@ -159,7 +169,7 @@ export const columns: ColumnDef<Monitor>[] = [
                                     className={cn(
                                         'h-full w-4 p-1',
                                         statusStyles({
-                                            status: 'unknown',
+                                            status: 'processing',
                                             intent: 'bg',
                                         }),
                                     )}

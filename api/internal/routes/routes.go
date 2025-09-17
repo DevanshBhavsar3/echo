@@ -42,6 +42,7 @@ func SetupRoutes(app *fiber.App, handlers handler.Handler) {
 	websiteRouter.Post("/", handlers.Website.AddWebsite)
 	websiteRouter.Get("/", handlers.Website.GetAllWebsites)
 	websiteRouter.Get("/ticks/:id", handlers.Website.GetTicks)
+	websiteRouter.Get("/metrics/:id", handlers.Website.GetMetrics)
 	websiteRouter.Put("/:id", handlers.Website.UpdateWebsite)
 	websiteRouter.Get("/:id", handlers.Website.GetWebsiteById)
 	websiteRouter.Delete("/:id", handlers.Website.DeleteWebsite)

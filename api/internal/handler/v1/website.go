@@ -262,7 +262,18 @@ func (h *WebsiteHandler) GetTicks(c *fiber.Ctx) error {
 	}
 
 	days := c.Query("days")
+	if days == "" {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": "Please provide tick range.",
+		})
+	}
+
 	region := c.Query("region")
+	if region == "" {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": "Please provide region.",
+		})
+	}
 
 	ticks, err := h.tickStorage.GetTicks(c.Context(), websiteId, days, region)
 	if err != nil {
@@ -280,4 +291,35 @@ func (h *WebsiteHandler) GetTicks(c *fiber.Ctx) error {
 	}
 
 	return c.Status(http.StatusOK).JSON(ticks)
+}
+
+func (h *WebsiteHandler) GetMetrics(c *fiber.Ctx) error {
+	websiteId := c.Params("id")
+
+	region := c.Query("region")
+
+	fmt.Println("REGION: ", region)
+
+	if region == "" {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": "Please provide region.",
+		})
+	}
+
+	err := uuid.Validate(websiteId)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid website id.",
+		})
+	}
+
+	metrics, err := h.tickStorage.GetMetrics(c.Context(), websiteId, region)
+	if err != nil {
+		fmt.Println(err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Error getting metrics.",
+		})
+	}
+
+	return c.Status(http.StatusOK).JSON(metrics)
 }

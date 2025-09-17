@@ -3,7 +3,6 @@ import { auth } from '../../auth'
 import { redirect } from 'next/navigation'
 import { API_URL } from '../../constants'
 import axios from 'axios'
-import { DashboardHeader } from '@/components/dashboard/header'
 import { DialogBox } from '@/components/dashboard/dialog'
 import { createWebsite } from '../../actions/website'
 import { DialogTrigger } from '@/components/ui/dialog'
@@ -35,7 +34,7 @@ export default async function DashboardPage() {
 
     return (
         <>
-            <DashboardHeader>
+            <header className="flex w-full shrink-0 items-center gap-2">
                 <h1 className="text-foreground text-4xl font-medium">
                     Monitor
                 </h1>
@@ -63,7 +62,7 @@ export default async function DashboardPage() {
                         </DialogTrigger>
                     </DialogBox>
                 </div>
-            </DashboardHeader>
+            </header>
 
             <div className="flex flex-1 flex-col">
                 <DataTable data={data} />

@@ -15,6 +15,7 @@ type Handler struct {
 		DeleteWebsite(c *fiber.Ctx) error
 		UpdateWebsite(c *fiber.Ctx) error
 		GetTicks(c *fiber.Ctx) error
+		GetMetrics(c *fiber.Ctx) error
 	}
 	Region interface {
 		GetRegions(c *fiber.Ctx) error
