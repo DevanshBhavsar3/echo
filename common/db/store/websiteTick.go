@@ -52,8 +52,8 @@ type Tick struct {
 }
 
 type MetricData struct {
-	Current string `json:"current"`
-	Trend   string `json:"trend,omitempty"`
+	Current  string `json:"current"`
+	Previous string `json:"previous,omitempty"`
 }
 
 type LatenciesMetrics struct {
@@ -207,15 +207,48 @@ func (s *WebsiteTickStorage) GetTicks(ctx context.Context, websiteID string, day
 func (s *WebsiteTickStorage) GetMetrics(ctx context.Context, websiteID string, region string) (*Metrics, error) {
 	// Response times
 	response_time_query := `
-		SELECT
-			COALESCE(TRUNC(percentile_cont(0.99) WITHIN GROUP (ORDER BY wt.response_time_ms)::numeric, 2), 0) as p99_response_time,
-			COALESCE(TRUNC(percentile_cont(0.95) WITHIN GROUP (ORDER BY wt.response_time_ms)::numeric, 2), 0) as p95_response_time,
-			COALESCE(TRUNC(percentile_cont(0.90) WITHIN GROUP (ORDER BY wt.response_time_ms)::numeric, 2), 0) as p90_response_time
-		FROM "website_tick" wt
-		JOIN "region" r ON wt.region_id = r.id
-		WHERE
-			wt.website_id = $1
-			AND r.name = $2
+		WITH filtered_ticks AS (
+			SELECT
+				wt.response_time_ms,
+				wt.time
+			FROM website_tick wt
+			JOIN region r ON wt.region_id = r.id
+			WHERE
+				wt.website_id = $1
+				AND wt.time BETWEEN NOW() - INTERVAL '2 months' AND NOW()
+				AND r.name = $2
+		),
+		percentiles AS (
+			SELECT
+				percentile_cont(0.99) WITHIN GROUP (ORDER BY response_time_ms)
+					FILTER (WHERE time >= NOW() - INTERVAL '1 month') AS curr_p99,
+				percentile_cont(0.95) WITHIN GROUP (ORDER BY response_time_ms)
+					FILTER (WHERE time >= NOW() - INTERVAL '1 month') AS curr_p95,
+				percentile_cont(0.90) WITHIN GROUP (ORDER BY response_time_ms)
+					FILTER (WHERE time >= NOW() - INTERVAL '1 month') AS curr_p90,
+
+				percentile_cont(0.99) WITHIN GROUP (ORDER BY response_time_ms)
+					FILTER (WHERE time < NOW() - INTERVAL '1 month') AS prev_p99,
+				percentile_cont(0.95) WITHIN GROUP (ORDER BY response_time_ms)
+					FILTER (WHERE time < NOW() - INTERVAL '1 month') AS prev_p95,
+				percentile_cont(0.90) WITHIN GROUP (ORDER BY response_time_ms)
+					FILTER (WHERE time < NOW() - INTERVAL '1 month') AS prev_p90
+			FROM filtered_ticks
+		)
+		SELECT *
+		FROM (
+			SELECT
+				COALESCE(curr_p99::numeric(12,2), 0) AS p99,
+				COALESCE(curr_p95::numeric(12,2), 0) AS p95,
+				COALESCE(curr_p90::numeric(12,2), 0) AS p90
+			FROM percentiles
+			UNION ALL
+			SELECT
+				COALESCE(prev_p99::numeric(12,2), 0) AS p99,
+				COALESCE(prev_p95::numeric(12,2), 0) AS p95,
+				COALESCE(prev_p90::numeric(12,2), 0) AS p90
+			FROM percentiles
+		)
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
@@ -229,8 +262,15 @@ func (s *WebsiteTickStorage) GetMetrics(ctx context.Context, websiteID string, r
 
 	response_time_metric := LatenciesMetrics{}
 
-	for rows.Next() {
+	if rows.Next() {
 		err := rows.Scan(&response_time_metric.P99.Current, &response_time_metric.P95.Current, &response_time_metric.P90.Current)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if rows.Next() {
+		err := rows.Scan(&response_time_metric.P99.Previous, &response_time_metric.P95.Previous, &response_time_metric.P90.Previous)
 		if err != nil {
 			return nil, err
 		}
@@ -249,23 +289,24 @@ func (s *WebsiteTickStorage) GetMetrics(ctx context.Context, websiteID string, r
 			JOIN "region" r ON wt.region_id = r.id
 			WHERE
 				website_id = $1
+				AND wt.time BETWEEN date_trunc('month', NOW()) AND date_trunc('month', NOW()) + INTERVAL '1 month'
 				AND r.name = $2
 		)
 		SELECT
 			CASE percentile_disc(0.99) WITHIN GROUP (ORDER BY status_numeric)
-				WHEN 1 THEN 'up'
-				WHEN 0 THEN 'down'
-				ELSE 'unknown'
+				WHEN 1 THEN 'Up'
+				WHEN 0 THEN 'Down'
+				ELSE 'Unknown'
 			END AS p99_status,
 			CASE percentile_disc(0.95) WITHIN GROUP (ORDER BY status_numeric)
-				WHEN 1 THEN 'up'
-				WHEN 0 THEN 'down'
-				ELSE 'unknown'
+				WHEN 1 THEN 'Up'
+				WHEN 0 THEN 'Down'
+				ELSE 'Unknown'
 			END AS p95_status,
 			CASE percentile_disc(0.90) WITHIN GROUP (ORDER BY status_numeric)
-				WHEN 1 THEN 'up'
-				WHEN 0 THEN 'down'
-				ELSE 'unknown'
+				WHEN 1 THEN 'Up'
+				WHEN 0 THEN 'Down'
+				ELSE 'Unknown'
 			END AS p90_status
 		FROM status_data
 	`
@@ -294,14 +335,41 @@ func (s *WebsiteTickStorage) GetMetrics(ctx context.Context, websiteID string, r
 			JOIN "region" r ON wt.region_id = r.id
 			WHERE
 				wt.website_id = $1
+				AND wt.time BETWEEN NOW() - INTERVAL '2 month' AND NOW()
 				AND r.name = $2
 			GROUP BY bucket
+		),
+		percentiles AS (
+			SELECT
+				percentile_cont(0.99) WITHIN GROUP (ORDER BY availability_pct) 
+					FILTER (WHERE bucket >= NOW() - INTERVAL '1 month') AS curr_p99,
+				percentile_cont(0.95) WITHIN GROUP (ORDER BY availability_pct) 
+					FILTER (WHERE bucket >= NOW() - INTERVAL '1 month') AS curr_p95,
+				percentile_cont(0.90) WITHIN GROUP (ORDER BY availability_pct) 
+					FILTER (WHERE bucket >= NOW() - INTERVAL '1 month') AS curr_p90,
+
+				percentile_cont(0.99) WITHIN GROUP (ORDER BY availability_pct) 
+					FILTER (WHERE bucket < NOW() - INTERVAL '1 month') AS prev_p99,
+				percentile_cont(0.95) WITHIN GROUP (ORDER BY availability_pct) 
+					FILTER (WHERE bucket < NOW() - INTERVAL '1 month') AS prev_p95,
+				percentile_cont(0.90) WITHIN GROUP (ORDER BY availability_pct) 
+					FILTER (WHERE bucket < NOW() - INTERVAL '1 month') AS prev_p90
+			FROM buckets
 		)
-		SELECT
-			COALESCE(TRUNC(percentile_cont(0.99) WITHIN GROUP (ORDER BY availability_pct)::numeric, 2), 0) AS p99_availability,
-			COALESCE(TRUNC(percentile_cont(0.95) WITHIN GROUP (ORDER BY availability_pct)::numeric, 2), 0) AS p95_availability,
-			COALESCE(TRUNC(percentile_cont(0.90) WITHIN GROUP (ORDER BY availability_pct)::numeric, 2), 0) AS p90_availability
-		FROM buckets;
+		SELECT *
+		FROM (
+			SELECT
+				COALESCE(curr_p99::numeric(12,2), 0) AS p99,
+				COALESCE(curr_p95::numeric(12,2), 0) AS p95,
+				COALESCE(curr_p90::numeric(12,2), 0) AS p90
+			FROM percentiles
+			UNION ALL
+			SELECT
+				COALESCE(prev_p99::numeric(12,2), 0) AS p99,
+				COALESCE(prev_p95::numeric(12,2), 0) AS p95,
+				COALESCE(prev_p90::numeric(12,2), 0) AS p90
+			FROM percentiles
+		)
 	`
 	rows, err = s.db.Query(ctx, availability_query, websiteID, region)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
@@ -311,8 +379,15 @@ func (s *WebsiteTickStorage) GetMetrics(ctx context.Context, websiteID string, r
 
 	availability_metric := LatenciesMetrics{}
 
-	for rows.Next() {
+	if rows.Next() {
 		err := rows.Scan(&availability_metric.P99.Current, &availability_metric.P95.Current, &availability_metric.P90.Current)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if rows.Next() {
+		err := rows.Scan(&availability_metric.P99.Previous, &availability_metric.P95.Previous, &availability_metric.P90.Previous)
 		if err != nil {
 			return nil, err
 		}

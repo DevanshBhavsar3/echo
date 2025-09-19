@@ -14,17 +14,36 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { Latencies, Latency } from '@/lib/types'
-import { Info } from 'lucide-react'
+import { Info, TrendingDown, TrendingUp } from 'lucide-react'
 import { useState } from 'react'
 
 interface MetricCardProps {
     title: string
     description: string
     data: Latencies
+    showTrend?: boolean
+    suffix?: string
 }
 
-export function MetricCard({ title, description, data }: MetricCardProps) {
+export function MetricCard({
+    title,
+    description,
+    data,
+    showTrend = false,
+    suffix = '',
+}: MetricCardProps) {
     const [latency, setLatency] = useState<Latency>(Latency.P99)
+
+    let trend: number = 0
+
+    if (data[latency].previous && data[latency].previous !== '0') {
+        trend = Math.floor(
+            ((parseInt(data[latency].current) -
+                parseInt(data[latency].previous)) /
+                parseInt(data[latency].previous)) *
+                100.0,
+        )
+    }
 
     return (
         <div className="grid gap-3">
@@ -62,12 +81,22 @@ export function MetricCard({ title, description, data }: MetricCardProps) {
                     </Select>
                 </CardHeader>
                 <CardContent>
-                    <div className="mb-12 flex h-24 flex-1 flex-col items-center justify-center gap-2 font-mono">
+                    <div className="mb-12 flex h-12 flex-1 flex-col items-center justify-center gap-2 font-mono">
                         <p className="text-2xl font-medium">
-                            {data[latency].current}
+                            {data[latency].current + (suffix && ' ' + suffix)}
                         </p>
-                        {data[latency].trend && (
-                            <p className="text-sm">{data[latency].trend}</p>
+
+                        {showTrend && trend !== 0 && (
+                            <div className="flex items-center gap-2">
+                                {Math.sign(trend) === -1 ? (
+                                    <TrendingDown size={14} />
+                                ) : (
+                                    <TrendingUp size={14} />
+                                )}
+                                <div className="text-muted-foreground text-sm">
+                                    {trend.toFixed(2) + ' %'} from last month
+                                </div>
+                            </div>
                         )}
                     </div>
                 </CardContent>

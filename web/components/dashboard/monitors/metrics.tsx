@@ -44,6 +44,8 @@ export function MetricsSection({ monitor }: MetricsProps) {
                     title="Reponse Time"
                     description=" Measures the total time from request to full response."
                     data={data.response}
+                    suffix="MS"
+                    showTrend
                 />
                 <MetricCard
                     title="Status"
@@ -54,6 +56,8 @@ export function MetricsSection({ monitor }: MetricsProps) {
                     title="Availability"
                     description=" The overall readiness of the service, including uptime and its ability to return successful responses."
                     data={data.availability}
+                    suffix="%"
+                    showTrend
                 />
             </div>
         </div>

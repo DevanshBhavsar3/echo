@@ -38,7 +38,7 @@ export const websiteSchema = z.object({
 
 export type MetricData = {
     current: string,
-    trend?: string
+    previous?: string
 }
 
 export enum Latency {

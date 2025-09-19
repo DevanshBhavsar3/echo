@@ -300,7 +300,7 @@ export function DataTable({ data }: { data: Monitor[] }) {
         }, 30000) // Refresh every 30 seconds
 
         return () => clearInterval(timer)
-    })
+    }, [])
 
     return (
         <div className="border">
