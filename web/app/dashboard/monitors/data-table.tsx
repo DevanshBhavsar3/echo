@@ -161,30 +161,11 @@ export const columns: ColumnDef<Monitor>[] = [
             const ticks = row.getValue('ticks') as Tick[]
 
             if (ticks == null || ticks.length === 0) {
-                return (
-                    <div className="flex h-full items-center gap-1">
-                        <Tooltip>
-                            <TooltipTrigger>
-                                <span
-                                    className={cn(
-                                        'h-full w-4 p-1',
-                                        statusStyles({
-                                            status: 'processing',
-                                            intent: 'bg',
-                                        }),
-                                    )}
-                                ></span>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                No uptime data available
-                            </TooltipContent>
-                        </Tooltip>
-                    </div>
-                )
+                return
             }
 
             return (
-                <div className="flex h-full items-center gap-1">
+                <div className="flex items-center justify-center gap-1">
                     {ticks.map((tick, index) => {
                         return (
                             <Tooltip key={index}>
@@ -312,7 +293,11 @@ export function DataTable({ data }: { data: Monitor[] }) {
                                 return (
                                     <TableHead
                                         key={header.id}
-                                        className="text-muted-foreground font-mono uppercase"
+                                        className={`text-muted-foreground font-mono uppercase ${
+                                            header.index === 0
+                                                ? 'w-2/3 text-left'
+                                                : 'w-auto text-center'
+                                        }`}
                                     >
                                         {header.isPlaceholder
                                             ? null
@@ -340,8 +325,15 @@ export function DataTable({ data }: { data: Monitor[] }) {
                                     )
                                 }
                             >
-                                {row.getVisibleCells().map((cell) => (
-                                    <TableCell key={cell.id}>
+                                {row.getVisibleCells().map((cell, cellIdx) => (
+                                    <TableCell
+                                        key={cell.id}
+                                        className={
+                                            cellIdx === 0
+                                                ? 'text-left'
+                                                : 'text-center'
+                                        }
+                                    >
                                         {flexRender(
                                             cell.column.columnDef.cell,
                                             cell.getContext(),

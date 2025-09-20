@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { getMonitorDetails, getMonitorMetrics } from '@/app/actions/website'
 
 import {
+    CalendarIcon,
     ChevronLeft,
     Globe,
     Link as LinkIcon,
@@ -23,6 +24,16 @@ import {
 import { MetricCard } from '@/components/dashboard/monitors/metric-card'
 import Link from 'next/link'
 import { MetricsSection } from '@/components/dashboard/monitors/metrics'
+import {
+    Uptime,
+    UptimeTable,
+} from '@/components/dashboard/monitors/availability-table'
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover'
+import { Calendar } from '@/components/ui/calendar'
 
 export type Tick = {
     time: string
@@ -94,7 +105,36 @@ export default async function MonitorPage({
             <div className="flex flex-col gap-18">
                 <UptimeChart monitor={monitor} />
                 <MetricsSection monitor={monitor} />
+                <UptimeTable monitor={monitor} uptimeData={data} />
             </div>
         </>
     )
 }
+
+const data: Uptime[] = [
+    {
+        time: 'Today',
+        availability: '100.00%',
+        avg_response_time: '1532 MS',
+    },
+    {
+        time: 'Last 7 days',
+        availability: '100.00%',
+        avg_response_time: '1532 MS',
+    },
+    {
+        time: 'Last 30 days',
+        availability: '100.00%',
+        avg_response_time: '1532 MS',
+    },
+    {
+        time: 'Last 365 days',
+        availability: '100.00%',
+        avg_response_time: '1532 MS',
+    },
+    {
+        time: 'All time',
+        availability: '100.00%',
+        avg_response_time: '1532 MS',
+    },
+]

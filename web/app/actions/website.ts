@@ -7,6 +7,8 @@ import { auth } from '../auth'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { Monitor } from '../dashboard/monitors/data-table'
+import { DateRange } from 'react-day-picker'
+import { Uptime } from '@/components/dashboard/monitors/availability-table'
 
 export async function createWebsite(_: unknown, formData: FormData) {
     const user = await auth()
@@ -172,5 +174,29 @@ export async function getMonitorMetrics(monitorId: string, region: string) {
         return metricRes.data as Metrics
     } catch (error) {
         console.error('Error fetching monitor metrics:', error)
+    }
+}
+
+export async function getUptime(monitorId: string, range: DateRange): Promise<Uptime> {
+    const user = await auth();
+    if (!user?.token) {
+        redirect("/login")
+    }
+
+    return {
+        time: "From " +
+            range.from?.toLocaleDateString('en-IN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+            }) +
+            ' To ' +
+            range.to?.toLocaleDateString('en-IN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+            }),
+        availability: "86.12%",
+        avg_response_time: "124.02 MS",
     }
 }
