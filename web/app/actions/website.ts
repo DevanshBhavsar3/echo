@@ -165,11 +165,14 @@ export async function getMonitorMetrics(monitorId: string, region: string) {
     }
 
     try {
-        const metricRes = await axios.get(`${API_URL}/website/metrics/${monitorId}?region=${region}`, {
-            headers: {
-                Authorization: `Bearer ${user.token}`,
+        const metricRes = await axios.get(
+            `${API_URL}/website/metrics/${monitorId}?region=${region}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${user.token}`,
+                },
             },
-        })
+        )
 
         return metricRes.data as Metrics
     } catch (error) {
@@ -177,14 +180,18 @@ export async function getMonitorMetrics(monitorId: string, region: string) {
     }
 }
 
-export async function getUptime(monitorId: string, range: DateRange): Promise<Uptime> {
-    const user = await auth();
+export async function getUptime(
+    monitorId: string,
+    range: DateRange,
+): Promise<Uptime> {
+    const user = await auth()
     if (!user?.token) {
-        redirect("/login")
+        redirect('/login')
     }
 
     return {
-        time: "From " +
+        time:
+            'From ' +
             range.from?.toLocaleDateString('en-IN', {
                 year: 'numeric',
                 month: '2-digit',
@@ -196,7 +203,7 @@ export async function getUptime(monitorId: string, range: DateRange): Promise<Up
                 month: '2-digit',
                 day: '2-digit',
             }),
-        availability: "86.12%",
-        avg_response_time: "124.02 MS",
+        availability: '86.12%',
+        avg_response_time: '124.02 MS',
     }
 }

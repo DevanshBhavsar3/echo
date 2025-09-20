@@ -23,11 +23,9 @@ import {
     DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 import {
-    Check,
     Disc2,
     Loader,
     MoreHorizontal,
-    X,
     CircleCheck,
     CircleX,
 } from 'lucide-react'
@@ -281,7 +279,7 @@ export function DataTable({ data }: { data: Monitor[] }) {
         }, 30000) // Refresh every 30 seconds
 
         return () => clearInterval(timer)
-    }, [])
+    }, [router])
 
     return (
         <div className="border">

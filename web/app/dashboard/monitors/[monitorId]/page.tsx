@@ -1,39 +1,22 @@
 import { auth } from '@/app/auth'
 import { redirect } from 'next/navigation'
-import { getMonitorDetails, getMonitorMetrics } from '@/app/actions/website'
+import { getMonitorDetails } from '@/app/actions/website'
 
 import {
-    CalendarIcon,
     ChevronLeft,
     Globe,
     Link as LinkIcon,
     Settings,
     TriangleAlert,
 } from 'lucide-react'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { UptimeChart } from '@/components/dashboard/monitors/uptime-chart'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select'
-import { MetricCard } from '@/components/dashboard/monitors/metric-card'
 import Link from 'next/link'
 import { MetricsSection } from '@/components/dashboard/monitors/metrics'
 import {
     Uptime,
     UptimeTable,
 } from '@/components/dashboard/monitors/availability-table'
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from '@/components/ui/popover'
-import { Calendar } from '@/components/ui/calendar'
 
 export type Tick = {
     time: string

@@ -1,4 +1,3 @@
-import { Monitor } from '@/app/dashboard/monitors/data-table'
 import { z } from 'zod'
 
 export const registerSchema = z.object({
@@ -37,7 +36,7 @@ export const websiteSchema = z.object({
 })
 
 export type MetricData = {
-    current: string,
+    current: string
     previous?: string
 }
 

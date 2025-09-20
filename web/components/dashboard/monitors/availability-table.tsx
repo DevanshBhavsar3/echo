@@ -23,9 +23,8 @@ import {
     getCoreRowModel,
     useReactTable,
 } from '@tanstack/react-table'
-import { setDate } from 'date-fns'
 import { CalendarIcon } from 'lucide-react'
-import { useActionState, useRef, useState } from 'react'
+import { useState } from 'react'
 import { DateRange } from 'react-day-picker'
 
 export const columns: ColumnDef<Uptime>[] = [

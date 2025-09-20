@@ -27,9 +27,7 @@ import {
 } from '@/components/ui/select'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { frequencyToMs } from '@/lib/utils'
-import { LoaderCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import ReactCountryFlag from 'react-country-flag'
 import { CartesianGrid, Line, LineChart, XAxis } from 'recharts'
 
 const chartConfig = {
