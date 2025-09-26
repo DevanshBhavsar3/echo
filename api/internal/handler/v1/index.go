@@ -16,6 +16,7 @@ type Handler struct {
 		UpdateWebsite(c *fiber.Ctx) error
 		GetTicks(c *fiber.Ctx) error
 		GetMetrics(c *fiber.Ctx) error
+		GetUptime(c *fiber.Ctx) error
 	}
 	Region interface {
 		GetRegions(c *fiber.Ctx) error

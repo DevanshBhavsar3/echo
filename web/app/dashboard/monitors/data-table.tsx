@@ -29,7 +29,7 @@ import {
     CircleCheck,
     CircleX,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { deleteWebsite, editWebsite } from '../../actions/website'
 import { DialogBox } from '@/components/dashboard/dialog'
@@ -42,6 +42,9 @@ import {
     TooltipContent,
 } from '@/components/ui/tooltip'
 import { Badge } from '@/components/ui/badge'
+import { Uptime } from '@/components/dashboard/monitors/uptime-table'
+import dayjs from '@/lib/dayjs'
+import { LastChecked } from '@/components/dashboard/last-check'
 
 export type Status = 'up' | 'down' | 'processing'
 
@@ -62,6 +65,7 @@ export type Monitor = {
     regions: Region[]
     createdAt: string
     ticks: Tick[]
+    uptime: Uptime[]
 }
 
 export const statusStyles = cva('', {
@@ -141,7 +145,7 @@ export const columns: ColumnDef<Monitor>[] = [
                             </Badge>
                         </TooltipTrigger>
                         <TooltipContent>
-                            <LastCheckedCell
+                            <LastChecked
                                 ticks={ticks}
                                 createdAt={createdAt}
                                 className="text-background gap flex items-center text-xs"
@@ -180,16 +184,8 @@ export const columns: ColumnDef<Monitor>[] = [
                                 </TooltipTrigger>
                                 <TooltipContent>
                                     <p>
-                                        {new Date(tick.time).toLocaleDateString(
-                                            'en-IN',
-                                            {
-                                                year: 'numeric',
-                                                month: '2-digit',
-                                                day: '2-digit',
-                                                hour: '2-digit',
-                                                minute: '2-digit',
-                                                second: '2-digit',
-                                            },
+                                        {dayjs(tick.time).format(
+                                            'DD/MM/YYYY hh:mm:ss A',
                                         )}
                                     </p>
                                 </TooltipContent>
@@ -353,50 +349,5 @@ export function DataTable({ data }: { data: Monitor[] }) {
                 </TableBody>
             </Table>
         </div>
-    )
-}
-
-function LastCheckedCell({
-    ticks,
-    createdAt,
-    className,
-    ...props
-}: {
-    ticks?: Tick[]
-    createdAt: string
-    className?: string
-    props?: React.ComponentProps<'span'>
-}) {
-    const [elapsedTime, setElapsedTime] = useState(0)
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            let elapsedTime
-
-            if (!ticks || ticks.length === 0) {
-                elapsedTime = Math.floor(
-                    (Date.now() - new Date(createdAt).getTime()) / 1000,
-                )
-            } else {
-                elapsedTime = Math.floor(
-                    (Date.now() -
-                        new Date(ticks[ticks.length - 1].time).getTime()) /
-                        1000,
-                )
-            }
-
-            setElapsedTime(elapsedTime)
-        }, 1000)
-
-        return () => clearInterval(interval)
-    }, [ticks, createdAt])
-
-    return (
-        <span className={className} {...props}>
-            Last Checked{' '}
-            {Math.floor(elapsedTime / 60) > 0
-                ? `${Math.floor(elapsedTime / 60)} minute(s) ago`
-                : `${Math.floor(elapsedTime % 3600)} second(s) ago`}
-        </span>
     )
 }

@@ -1,11 +1,13 @@
 ## TODOS
 
 - [x] docker compose
-- [x] tests for api
-- [ ] frontend for ticks
+- [x] frontend for ticks
+- [ ] oauth2
+- [ ] tests for api
+- [ ] deployment
+- [ ] UI revamp
 - [ ] teams/organizations
 - [ ] status pages
-- [ ] oauth2
 - [ ] Preview of Server Logs
 
 ## Contributing

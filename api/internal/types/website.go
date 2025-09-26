@@ -29,6 +29,7 @@ type GetWebsiteByIdResponse struct {
 	Frequency string         `json:"frequency"`
 	Regions   []store.Region `json:"regions"`
 	CreatedAt string         `json:"createdAt"`
+	Uptime    []store.Uptime `json:"uptime"`
 }
 
 type UpdateWebsiteBody struct {

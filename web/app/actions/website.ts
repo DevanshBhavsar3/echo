@@ -8,7 +8,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { Monitor } from '../dashboard/monitors/data-table'
 import { DateRange } from 'react-day-picker'
-import { Uptime } from '@/components/dashboard/monitors/availability-table'
+import dayjs from '@/lib/dayjs'
 
 export async function createWebsite(_: unknown, formData: FormData) {
     const user = await auth()
@@ -180,30 +180,31 @@ export async function getMonitorMetrics(monitorId: string, region: string) {
     }
 }
 
-export async function getUptime(
-    monitorId: string,
-    range: DateRange,
-): Promise<Uptime> {
+export async function getUptime(monitorId: string, range: DateRange) {
     const user = await auth()
     if (!user?.token) {
         redirect('/login')
     }
 
-    return {
-        time:
-            'From ' +
-            range.from?.toLocaleDateString('en-IN', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-            }) +
-            ' To ' +
-            range.to?.toLocaleDateString('en-IN', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-            }),
-        availability: '86.12%',
-        avg_response_time: '124.02 MS',
+    try {
+        const res = await axios.get(
+            `${API_URL}/website/uptime/${monitorId}?from=${dayjs(range.from).format('YYYY-MM-DD')}&to=${dayjs(range.to).format('YYYY-MM-DD')}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${user.token}`,
+                },
+            },
+        )
+
+        return {
+            success: true,
+            data: {
+                ...res.data,
+                custom: true,
+            },
+        }
+    } catch (error) {
+        console.error('Error fetching monitor uptime:', error)
+        return { success: false }
     }
 }

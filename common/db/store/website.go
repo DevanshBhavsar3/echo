@@ -45,7 +45,7 @@ func (s *WebsiteStorage) CreateWebsite(ctx context.Context, w Website, userId st
 
 	regionQuery := `
 		INSERT INTO "website_region" (website_id, region_id)
-		VALUES ($1, $2)	
+		VALUES ($1, $2)
 	`
 
 	for _, region := range w.Regions {
@@ -68,20 +68,20 @@ func (s *WebsiteStorage) CreateWebsite(ctx context.Context, w Website, userId st
 
 func (s *WebsiteStorage) GetWebsiteById(ctx context.Context, id string, userId string) (*Website, error) {
 	query := `
-		SELECT 
+		SELECT
             w.id,
             w.url,
             w.frequency,
             w.created_at,
             r.id,
             r.name
-        FROM 
+        FROM
             website w
-        LEFT JOIN 
+        LEFT JOIN
             website_region wr ON w.id = wr.website_id
-        LEFT JOIN 
+        LEFT JOIN
             region r ON wr.region_id = r.id
-        WHERE 
+        WHERE
             w.id = $1 AND w.created_by = $2
 	`
 
@@ -128,7 +128,7 @@ func (s *WebsiteStorage) GetWebsiteById(ctx context.Context, id string, userId s
 
 func (s *WebsiteStorage) GetWebsiteByFrequency(ctx context.Context, freq string) ([]Website, error) {
 	query := `
-		SELECT 
+		SELECT
             w.id,
             w.url,
             w.frequency,
@@ -136,13 +136,13 @@ func (s *WebsiteStorage) GetWebsiteByFrequency(ctx context.Context, freq string)
 			w.created_by,
             r.id,
             r.name
-        FROM 
+        FROM
             website w
-        LEFT JOIN 
+        LEFT JOIN
             website_region wr ON w.id = wr.website_id
-        LEFT JOIN 
+        LEFT JOIN
             region r ON wr.region_id = r.id
-        WHERE 
+        WHERE
             w.frequency = $1
 	 `
 
@@ -197,19 +197,19 @@ func (s *WebsiteStorage) GetWebsiteByFrequency(ctx context.Context, freq string)
 
 func (s *WebsiteStorage) GetAllWebsites(ctx context.Context, userId string) ([]Website, error) {
 	query := `
-		SELECT 
+		SELECT
 						w.id,
 						w.url,
 						w.frequency,
 						w.created_at,
 						r.name
-				FROM 
+				FROM
 						website w
-				LEFT JOIN 
+				LEFT JOIN
 						website_region wr ON w.id = wr.website_id
-				LEFT JOIN 
+				LEFT JOIN
 						region r ON wr.region_id = r.id
-				WHERE 
+				WHERE
 						w.created_by = $1
 	`
 
@@ -269,22 +269,22 @@ func (s *WebsiteStorage) DeleteWebsite(ctx context.Context, id string, userId st
 	defer tx.Rollback(ctx)
 
 	websiteRegionQuery := `
-		DELETE FROM 
+		DELETE FROM
 			website_region
-		WHERE 
+		WHERE
 			website_id IN (SELECT id FROM website WHERE id = $1 AND created_by = $2)
 	`
 	websiteTickQuery := `
-		DELETE FROM 
+		DELETE FROM
 			website_tick
-		WHERE 
+		WHERE
 			website_id IN (SELECT id FROM website WHERE id = $1 AND created_by = $2)
 	`
 
 	websiteQuery := `
-		DELETE FROM 
-			website 
-		WHERE 
+		DELETE FROM
+			website
+		WHERE
 			id = $1 AND created_by = $2
 	`
 	queries := []string{
@@ -323,11 +323,11 @@ func (s *WebsiteStorage) UpdateWebsite(ctx context.Context, w Website, userId st
 	defer tx.Rollback(ctx)
 
 	updateWebsiteQuery := `
-		UPDATE 
-			website 
-		SET 
+		UPDATE
+			website
+		SET
 			url = $1, frequency = $2
-		WHERE 
+		WHERE
 			id = $3 AND created_by = $4
 	`
 
@@ -361,7 +361,7 @@ func (s *WebsiteStorage) UpdateWebsite(ctx context.Context, w Website, userId st
 
 	regionQuery := `
 		INSERT INTO "website_region" (website_id, region_id)
-		VALUES ($1, $2)	
+		VALUES ($1, $2)
 	`
 
 	for _, region := range w.Regions {

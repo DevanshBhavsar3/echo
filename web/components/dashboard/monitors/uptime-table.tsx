@@ -1,5 +1,6 @@
 'use client'
 
+import dayjs from '@/lib/dayjs'
 import { getUptime } from '@/app/actions/website'
 import { Monitor } from '@/app/dashboard/monitors/data-table'
 import { Button } from '@/components/ui/button'
@@ -23,34 +24,55 @@ import {
     getCoreRowModel,
     useReactTable,
 } from '@tanstack/react-table'
-import { CalendarIcon } from 'lucide-react'
+import { CalendarIcon, LoaderCircle } from 'lucide-react'
 import { useState } from 'react'
 import { DateRange } from 'react-day-picker'
 
 export const columns: ColumnDef<Uptime>[] = [
-    { accessorKey: 'time', header: 'Time' },
+    {
+        accessorKey: 'time',
+        header: 'Time',
+        cell: ({ row }) => {
+            const [from, to] = row.original.time.split(', ')
+
+            const fromTime = dayjs(from)
+            const toTime = dayjs(to)
+
+            if (row.original.custom) {
+                return (
+                    fromTime.format('D MMMM, YYYY') +
+                    ' to ' +
+                    toTime.format('D MMMM, YYYY')
+                )
+            }
+
+            const days = toTime.diff(fromTime, 'day')
+
+            if (days == 0) {
+                return 'Today'
+            }
+
+            return 'Last ' + toTime.diff(fromTime, 'day') + ' days'
+        },
+    },
     { accessorKey: 'availability', header: 'Availability' },
     { accessorKey: 'avg_response_time', header: 'Avg. Response Times' },
 ]
 
 export type Uptime = {
+    custom?: boolean
     time: string
     availability: string
     avg_response_time: string
 }
 
-export function UptimeTable({
-    monitor,
-    uptimeData,
-}: {
-    monitor: Monitor
-    uptimeData: Uptime[]
-}) {
-    const [data, setData] = useState(uptimeData)
+export function UptimeTable({ monitor }: { monitor: Monitor }) {
+    const [data, setData] = useState(monitor.uptime)
     const [dateRange, setDateRange] = useState<DateRange>({
         from: new Date(),
         to: new Date(),
     })
+    const [loading, setLoading] = useState(false)
 
     const table = useReactTable({
         data,
@@ -114,7 +136,7 @@ export function UptimeTable({
                                     colSpan={columns.length}
                                     className="h-24 text-center"
                                 >
-                                    No availability data available.
+                                    No uptime data available.
                                 </TableCell>
                             </TableRow>
                         )}
@@ -131,17 +153,8 @@ export function UptimeTable({
                             }
                         >
                             <span>
-                                {dateRange.from?.toLocaleDateString('en-IN', {
-                                    year: 'numeric',
-                                    month: '2-digit',
-                                    day: '2-digit',
-                                }) +
-                                    ' - ' +
-                                    dateRange.to?.toLocaleDateString('en-IN', {
-                                        year: 'numeric',
-                                        month: '2-digit',
-                                        day: '2-digit',
-                                    })}
+                                {dayjs(dateRange.from).format('DD-MM-YYYY')} -{' '}
+                                {dayjs(dateRange.to).format('DD-MM-YYYY')}
                             </span>
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
@@ -149,14 +162,12 @@ export function UptimeTable({
                     <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                             selected={dateRange}
-                            onSelect={(date) => {
-                                setDateRange(date)
-                            }}
+                            onSelect={setDateRange}
                             mode="range"
                             required
                             disabled={(date) =>
                                 date > new Date() ||
-                                date < new Date('1900-01-01')
+                                date < new Date(monitor.createdAt)
                             }
                             captionLayout="dropdown"
                         />
@@ -164,15 +175,32 @@ export function UptimeTable({
                 </Popover>
                 <Button
                     onClick={async () => {
-                        const uptimeData = await getUptime(
-                            monitor.id,
-                            dateRange,
-                        )
-                        setData([...data, uptimeData])
+                        setLoading(true)
+                        const uptime = await getUptime(monitor.id, dateRange)
+                        setLoading(false)
+
+                        if (!uptime.success) {
+                            return
+                        }
+
+                        setData((prev) => {
+                            if (
+                                prev.length != 0 &&
+                                prev[prev.length - 1].custom
+                            ) {
+                                prev.pop()
+                            }
+
+                            return [...prev, uptime.data as Uptime]
+                        })
                     }}
-                    className="px-4"
+                    className="w-[100px] px-4"
                 >
-                    Calculate
+                    {loading ? (
+                        <LoaderCircle size={18} className="animate-spin" />
+                    ) : (
+                        'Calculate'
+                    )}
                 </Button>
             </div>
         </div>

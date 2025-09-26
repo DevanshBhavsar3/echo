@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"errors"
+	"fmt"
 	"slices"
 	"time"
 
@@ -75,6 +76,12 @@ type WebsiteTick struct {
 	Status         string    `json:"status,omitempty"`
 	RegionID       *string   `json:"region_id,omitempty"`
 	WebsiteID      *string   `json:"website_id,omitempty"`
+}
+
+type Uptime struct {
+	Time            string `json:"time"`
+	Availability    string `json:"availability"`
+	AvgResponseTime string `json:"avg_response_time"`
 }
 
 type WebsiteTickStorage struct {
@@ -251,10 +258,10 @@ func (s *WebsiteTickStorage) GetMetrics(ctx context.Context, websiteID string, r
 		)
 	`
 
-	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	response_time_ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	rows, err := s.db.Query(ctx, response_time_query, websiteID, region)
+	rows, err := s.db.Query(response_time_ctx, response_time_query, websiteID, region)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return nil, err
 	}
@@ -310,7 +317,11 @@ func (s *WebsiteTickStorage) GetMetrics(ctx context.Context, websiteID string, r
 			END AS p90_status
 		FROM status_data
 	`
-	rows, err = s.db.Query(ctx, status_query, websiteID, region)
+
+	status_ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	rows, err = s.db.Query(status_ctx, status_query, websiteID, region)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return nil, err
 	}
@@ -341,37 +352,41 @@ func (s *WebsiteTickStorage) GetMetrics(ctx context.Context, websiteID string, r
 		),
 		percentiles AS (
 			SELECT
-				percentile_cont(0.99) WITHIN GROUP (ORDER BY availability_pct) 
+				percentile_cont(0.99) WITHIN GROUP (ORDER BY availability_pct)
 					FILTER (WHERE bucket >= NOW() - INTERVAL '1 month') AS curr_p99,
-				percentile_cont(0.95) WITHIN GROUP (ORDER BY availability_pct) 
+				percentile_cont(0.95) WITHIN GROUP (ORDER BY availability_pct)
 					FILTER (WHERE bucket >= NOW() - INTERVAL '1 month') AS curr_p95,
-				percentile_cont(0.90) WITHIN GROUP (ORDER BY availability_pct) 
+				percentile_cont(0.90) WITHIN GROUP (ORDER BY availability_pct)
 					FILTER (WHERE bucket >= NOW() - INTERVAL '1 month') AS curr_p90,
 
-				percentile_cont(0.99) WITHIN GROUP (ORDER BY availability_pct) 
+				percentile_cont(0.99) WITHIN GROUP (ORDER BY availability_pct)
 					FILTER (WHERE bucket < NOW() - INTERVAL '1 month') AS prev_p99,
-				percentile_cont(0.95) WITHIN GROUP (ORDER BY availability_pct) 
+				percentile_cont(0.95) WITHIN GROUP (ORDER BY availability_pct)
 					FILTER (WHERE bucket < NOW() - INTERVAL '1 month') AS prev_p95,
-				percentile_cont(0.90) WITHIN GROUP (ORDER BY availability_pct) 
+				percentile_cont(0.90) WITHIN GROUP (ORDER BY availability_pct)
 					FILTER (WHERE bucket < NOW() - INTERVAL '1 month') AS prev_p90
 			FROM buckets
 		)
 		SELECT *
 		FROM (
 			SELECT
-				COALESCE(curr_p99::numeric(12,2), 0) AS p99,
-				COALESCE(curr_p95::numeric(12,2), 0) AS p95,
-				COALESCE(curr_p90::numeric(12,2), 0) AS p90
+				COALESCE(curr_p99::numeric(5,2), 0) AS p99,
+				COALESCE(curr_p95::numeric(5,2), 0) AS p95,
+				COALESCE(curr_p90::numeric(5,2), 0) AS p90
 			FROM percentiles
 			UNION ALL
 			SELECT
-				COALESCE(prev_p99::numeric(12,2), 0) AS p99,
-				COALESCE(prev_p95::numeric(12,2), 0) AS p95,
-				COALESCE(prev_p90::numeric(12,2), 0) AS p90
+				COALESCE(prev_p99::numeric(5,2), 0) AS p99,
+				COALESCE(prev_p95::numeric(5,2), 0) AS p95,
+				COALESCE(prev_p90::numeric(5,2), 0) AS p90
 			FROM percentiles
 		)
 	`
-	rows, err = s.db.Query(ctx, availability_query, websiteID, region)
+
+	availability_ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	rows, err = s.db.Query(availability_ctx, availability_query, websiteID, region)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return nil, err
 	}
@@ -400,4 +415,44 @@ func (s *WebsiteTickStorage) GetMetrics(ctx context.Context, websiteID string, r
 	}
 
 	return &metrics, nil
+}
+
+type Range struct {
+	From time.Time
+	To   time.Time
+}
+
+func (s *WebsiteTickStorage) GetWebsiteUptime(ctx context.Context, websiteID string, uptime_range []Range) ([]Uptime, error) {
+	query := `
+		SELECT
+			COALESCE(100.0 * (SUM(CASE WHEN wt.status = 'up' THEN 1 ELSE 0 END)::float / COUNT(*))::numeric(5,2), 0),
+			COALESCE(AVG(wt.response_time_ms)::numeric(12,2), 0)
+		FROM "website_tick" wt
+		WHERE
+			wt.website_id = $1
+			AND wt.time BETWEEN $2 AND $3
+	`
+
+	var uptime []Uptime
+
+	for _, r := range uptime_range {
+		ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+		defer cancel()
+
+		var u Uptime
+
+		u.Time = fmt.Sprintf("%v, %v", r.From.Format("2006-01-02"), r.To.Format("2006-01-02"))
+
+		err := s.db.QueryRow(ctx, query, websiteID, r.From, r.To).Scan(&u.Availability, &u.AvgResponseTime)
+		if err != nil {
+			return nil, err
+		}
+
+		u.Availability = fmt.Sprintf("%v%%", u.Availability)
+		u.AvgResponseTime = fmt.Sprintf("%v MS", u.AvgResponseTime)
+
+		uptime = append(uptime, u)
+	}
+
+	return uptime, nil
 }

@@ -2,7 +2,6 @@ package handler
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -122,6 +121,25 @@ func (h *WebsiteHandler) GetAllWebsites(c *fiber.Ctx) error {
 	return c.Status(http.StatusOK).JSON(response)
 }
 
+var DefaultUptimeRanges = []store.Range{
+	{
+		From: time.Now().Truncate(24 * time.Hour),
+		To:   time.Now(),
+	},
+	{
+		From: time.Now().AddDate(0, 0, -7),
+		To:   time.Now(),
+	},
+	{
+		From: time.Now().AddDate(0, -1, 0),
+		To:   time.Now(),
+	},
+	{
+		From: time.Now().AddDate(-1, 0, 0),
+		To:   time.Now(),
+	},
+}
+
 func (h *WebsiteHandler) GetWebsiteById(c *fiber.Ctx) error {
 	userID := c.Locals("userID").(string)
 	websiteId := c.Params("id")
@@ -147,12 +165,20 @@ func (h *WebsiteHandler) GetWebsiteById(c *fiber.Ctx) error {
 		}
 	}
 
+	uptime, err := h.tickStorage.GetWebsiteUptime(c.Context(), websiteId, DefaultUptimeRanges)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Error getting website uptime.",
+		})
+	}
+
 	response := types.GetWebsiteByIdResponse{
 		ID:        website.ID,
 		Url:       website.Url,
 		Frequency: pkg.ShortDuration(website.Frequency),
 		Regions:   website.Regions,
 		CreatedAt: website.CreatedAt.Format(time.RFC3339),
+		Uptime:    uptime,
 	}
 
 	return c.Status(http.StatusOK).JSON(response)
@@ -283,7 +309,6 @@ func (h *WebsiteHandler) GetTicks(c *fiber.Ctx) error {
 				"error": "No ticks found for this website.",
 			})
 		default:
-			fmt.Println("Error getting ticks:", err)
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Error getting ticks.",
 			})
@@ -297,8 +322,6 @@ func (h *WebsiteHandler) GetMetrics(c *fiber.Ctx) error {
 	websiteId := c.Params("id")
 
 	region := c.Query("region")
-
-	fmt.Println("REGION: ", region)
 
 	if region == "" {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
@@ -315,11 +338,44 @@ func (h *WebsiteHandler) GetMetrics(c *fiber.Ctx) error {
 
 	metrics, err := h.tickStorage.GetMetrics(c.Context(), websiteId, region)
 	if err != nil {
-		fmt.Println(err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Error getting metrics.",
 		})
 	}
 
 	return c.Status(http.StatusOK).JSON(metrics)
+}
+
+func (h *WebsiteHandler) GetUptime(c *fiber.Ctx) error {
+	websiteId := c.Params("id")
+
+	from, err := time.Parse(time.DateOnly, c.Query("from"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid date format.",
+		})
+	}
+
+	to, err := time.Parse(time.DateOnly, c.Query("to"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid date format.",
+		})
+	}
+
+	uptime_range := store.Range{
+		From: from.Truncate(24 * time.Hour),
+		To:   to.Truncate(24 * time.Hour).Add(23 * time.Hour),
+	}
+
+	uptime, err := h.tickStorage.GetWebsiteUptime(c.Context(), websiteId, []store.Range{
+		uptime_range,
+	})
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Error getting website uptime.",
+		})
+	}
+
+	return c.Status(http.StatusOK).JSON(uptime[0])
 }
