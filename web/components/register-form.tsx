@@ -16,6 +16,7 @@ import { GoogleIcon } from './assets/google'
 import { GithubIcon } from './assets/github'
 import { useActionState } from 'react'
 import { register } from '@/app/actions/auth'
+import { signIn } from 'next-auth/react'
 
 export function RegisterForm({
     className,
@@ -34,7 +35,7 @@ export function RegisterForm({
                         Register your new Echo account.
                     </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="grid gap-4">
                     <form action={action}>
                         <div className="flex flex-col gap-6">
                             <div className="grid gap-3">
@@ -116,32 +117,38 @@ export function RegisterForm({
                             >
                                 Register
                             </Button>
-                            <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-                                <span className="bg-card text-muted-foreground relative z-10 px-2">
-                                    Or continue with
-                                </span>
-                            </div>
-                            <div className="flex flex-col gap-4">
-                                <Button variant="outline" className="w-full">
-                                    <GoogleIcon />
-                                    Login with Google
-                                </Button>
-                                <Button variant="outline" className="w-full">
-                                    <GithubIcon />
-                                    Login with GitHub
-                                </Button>
-                            </div>
-                        </div>
-                        <div className="mt-4 text-center text-sm">
-                            Already have an account?{' '}
-                            <Link
-                                href="/login"
-                                className="underline underline-offset-4"
-                            >
-                                Login
-                            </Link>
                         </div>
                     </form>
+                    <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
+                        <span className="bg-card text-muted-foreground relative z-10 px-2">
+                            Or continue with
+                        </span>
+                    </div>
+                    <div className="flex flex-col gap-4">
+                        <Button variant="outline" className="w-full">
+                            <GoogleIcon />
+                            Login with Google
+                        </Button>
+                        <Button
+                            variant="outline"
+                            className="w-full"
+                            onClick={() => {
+                                signIn('github')
+                            }}
+                        >
+                            <GithubIcon />
+                            Login with GitHub
+                        </Button>
+                    </div>
+                    <div className="mt-4 text-center text-sm">
+                        Already have an account?{' '}
+                        <Link
+                            href="/login"
+                            className="underline underline-offset-4"
+                        >
+                            Login
+                        </Link>
+                    </div>
                 </CardContent>
             </Card>
         </div>

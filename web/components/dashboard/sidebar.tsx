@@ -11,9 +11,6 @@ import {
     SidebarMenuItem,
 } from '../ui/sidebar'
 import { Globe, Radio } from 'lucide-react'
-import { auth } from '@/app/auth'
-import { redirect } from 'next/navigation'
-import { NavUser } from './nav-user'
 
 const data = {
     main: [
@@ -33,12 +30,6 @@ const data = {
 export async function DashboardSidebar({
     ...props
 }: React.ComponentProps<typeof Sidebar>) {
-    const user = await auth()
-
-    if (!user?.user.id) {
-        return redirect('/login')
-    }
-
     return (
         <Sidebar collapsible="offcanvas" {...props}>
             <SidebarHeader>
@@ -78,9 +69,7 @@ export async function DashboardSidebar({
                     </SidebarGroupContent>
                 </SidebarGroup>
             </SidebarContent>
-            <SidebarFooter>
-                <NavUser user={user.user} />
-            </SidebarFooter>
+            <SidebarFooter>{/*<NavUser user={user.user} />*/}</SidebarFooter>
         </Sidebar>
     )
 }

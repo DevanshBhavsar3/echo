@@ -9,7 +9,7 @@ import {
     BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 
-export default function LoginPage() {
+export default async function LoginPage() {
     return (
         <div className="flex min-h-svh w-full flex-col items-center justify-center p-6 text-left md:p-10">
             <Breadcrumb className="absolute top-0 left-0 z-10 w-full px-4 py-2">

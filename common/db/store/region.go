@@ -20,7 +20,7 @@ type RegionStorage struct {
 func (s *RegionStorage) GetAllRegions(ctx context.Context) ([]Region, error) {
 	query := `
 		SELECT id, name
-		FROM "region"	
+		FROM "region"
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
@@ -32,7 +32,7 @@ func (s *RegionStorage) GetAllRegions(ctx context.Context) ([]Region, error) {
 	}
 	defer rows.Close()
 
-	var regions []Region
+	var regions []Region = []Region{}
 	for rows.Next() {
 		var r Region
 
@@ -70,7 +70,7 @@ func (s *RegionStorage) AddRegion(ctx context.Context, name string) error {
 func (s *RegionStorage) GetRegionByName(ctx context.Context, name string) (*Region, error) {
 	query := `
 		SELECT id, name
-		FROM "region"	
+		FROM "region"
 		WHERE name = $1
 	`
 

@@ -39,9 +39,9 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	}
 
 	user := &store.User{
-		Name:   body.Name,
-		Email:  body.Email,
-		Avatar: body.Avatar,
+		Name:  body.Name,
+		Email: body.Email,
+		Image: body.Image,
 	}
 
 	// hash the user password
@@ -67,7 +67,12 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 
 	// Create token
 	claims := jwt.MapClaims{
-		"sub": newUser.ID,
+		"sub": pkg.JWTPayload{
+			ID:    newUser.ID,
+			Name:  newUser.Name,
+			Email: newUser.Email,
+			Image: newUser.Image,
+		},
 		"exp": time.Now().Add(pkg.Exp).Unix(),
 		"iat": time.Now().Unix(),
 		"nbf": time.Now().Unix(),
@@ -84,7 +89,6 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 
 	return c.Status(http.StatusCreated).JSON(fiber.Map{
 		"token": token,
-		"user":  newUser,
 	})
 }
 
@@ -125,7 +129,12 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 
 	// Create token
 	claims := jwt.MapClaims{
-		"sub": user.ID,
+		"sub": pkg.JWTPayload{
+			ID:    user.ID,
+			Name:  user.Name,
+			Email: user.Email,
+			Image: user.Image,
+		},
 		"exp": time.Now().Add(pkg.Exp).Unix(),
 		"iat": time.Now().Unix(),
 		"nbf": time.Now().Unix(),
@@ -142,7 +151,6 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 
 	return c.Status(http.StatusOK).JSON(fiber.Map{
 		"token": token,
-		"user":  user,
 	})
 }
 
@@ -157,14 +165,14 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 }
 
 func (h *AuthHandler) GetUser(c *fiber.Ctx) error {
-	userId := c.Locals("userID").(string)
+	user := c.Locals("user").(pkg.JWTPayload)
 
-	user, err := h.userStorage.GetById(c.Context(), userId)
+	userData, err := h.userStorage.GetById(c.Context(), user.ID)
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Can't get user data.",
 		})
 	}
 
-	return c.Status(http.StatusOK).JSON(user)
+	return c.Status(http.StatusOK).JSON(userData)
 }

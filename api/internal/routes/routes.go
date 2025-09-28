@@ -14,8 +14,7 @@ import (
 
 func SetupRoutes(app *fiber.App, handlers handler.Handler) {
 	corsConfig := cors.Config{
-		AllowCredentials: true,
-		AllowOrigins:     config.Get("FRONTEND_URL"),
+		AllowOrigins: config.Get("FRONTEND_URL"),
 	}
 
 	// Middlewares
@@ -34,7 +33,7 @@ func SetupRoutes(app *fiber.App, handlers handler.Handler) {
 	authRouter := v1Router.Group("/auth")
 	authRouter.Post("/register", handlers.Auth.Register)
 	authRouter.Post("/login", handlers.Auth.Login)
-	authRouter.Get("/user", middleware.AuthMiddleware, handlers.Auth.GetUser)
+	authRouter.Get("/me", middleware.AuthMiddleware, handlers.Auth.GetUser)
 	authRouter.Post("/logout", handlers.Auth.Logout)
 
 	// Website routes

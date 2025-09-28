@@ -14,6 +14,13 @@ var (
 	Iss        string
 )
 
+type JWTPayload struct {
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
+	Image string `json:"image"`
+}
+
 func init() {
 	JWT_SECRET = config.Get("JWT_SECRET")
 	Exp = time.Hour * 3

@@ -1,28 +1,24 @@
 'use server'
 
-import { API_URL } from '../constants'
+import { cookies } from 'next/headers'
 import { Tick } from '../dashboard/monitors/[monitorId]/page'
-import { auth } from '../auth'
-import axios from 'axios'
+import apiClient from '@/lib/axios'
 
 export async function getTicks(
     monitorId: string,
     timeRange: number,
     region: string,
 ) {
-    const user = await auth()
-    if (!user?.token) {
-        return []
+    const cookieStore = await cookies()
+    const token = cookieStore.get('token')?.value
+
+    if (!token) {
+        return { error: 'No token found' }
     }
 
     try {
-        const ticksRes = await axios.get(
-            `${API_URL}/website/ticks/${monitorId}?days=${timeRange}&region=${region}`,
-            {
-                headers: {
-                    Authorization: `Bearer ${user.token}`,
-                },
-            },
+        const ticksRes = await apiClient.get(
+            `/website/ticks/${monitorId}?days=${timeRange}&region=${region}`,
         )
 
         return (ticksRes.data as Tick[]) || []

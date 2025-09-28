@@ -14,10 +14,10 @@ type User struct {
 	ID        string    `json:"id"`
 	Name      string    `json:"name"`
 	Email     string    `json:"email"`
-	Avatar    string    `json:"avatar"`
+	Image     string    `json:"image"`
 	Password  password  `json:"password"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 type password struct {
@@ -47,9 +47,9 @@ type UserStorage struct {
 
 func (s *UserStorage) Create(ctx context.Context, u User) (*User, error) {
 	query := `
-		INSERT INTO "user" (name, email, avatar, password)
+		INSERT INTO "user" (name, email, image, password)
 		VALUES ($1, $2, $3, $4)
-		RETURNING id, name, email, avatar, created_at, updated_at;
+		RETURNING id, name, email, image, created_at, updated_at;
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
@@ -57,7 +57,7 @@ func (s *UserStorage) Create(ctx context.Context, u User) (*User, error) {
 
 	var user User
 
-	err := s.db.QueryRow(ctx, query, u.Name, u.Email, u.Avatar, u.Password.hash).Scan(&user.ID, &user.Name, &user.Email, &user.Avatar, &user.CreatedAt, &user.UpdatedAt)
+	err := s.db.QueryRow(ctx, query, u.Name, u.Email, u.Image, u.Password.hash).Scan(&user.ID, &user.Name, &user.Email, &user.Image, &user.CreatedAt, &user.UpdatedAt)
 
 	if err != nil {
 		switch {
@@ -73,7 +73,7 @@ func (s *UserStorage) Create(ctx context.Context, u User) (*User, error) {
 
 func (s *UserStorage) GetByEmail(ctx context.Context, email string) (*User, error) {
 	query := `
-		SELECT id, name, email, avatar, password, created_at, updated_at
+		SELECT id, name, email, image, password, created_at, updated_at
 		FROM "user"
 		WHERE email = $1
 	`
@@ -86,7 +86,7 @@ func (s *UserStorage) GetByEmail(ctx context.Context, email string) (*User, erro
 		&user.ID,
 		&user.Name,
 		&user.Email,
-		&user.Avatar,
+		&user.Image,
 		&user.Password.hash,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -105,7 +105,7 @@ func (s *UserStorage) GetByEmail(ctx context.Context, email string) (*User, erro
 
 func (s *UserStorage) GetById(ctx context.Context, id string) (*User, error) {
 	query := `
-		SELECT id, name, email, avatar, password, created_at, updated_at
+		SELECT id, name, email, image, created_at, updated_at
 		FROM "user"
 		WHERE id = $1
 	`
@@ -118,8 +118,7 @@ func (s *UserStorage) GetById(ctx context.Context, id string) (*User, error) {
 		&user.ID,
 		&user.Name,
 		&user.Email,
-		&user.Avatar,
-		&user.Password.hash,
+		&user.Image,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)

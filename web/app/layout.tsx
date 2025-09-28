@@ -1,8 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import { ThemeProvider } from '@/components/theme-provider'
 import { Geist_Mono, Inter } from 'next/font/google'
-import { Toaster } from '@/components/ui/sonner'
+import { Providers } from './Providers'
 
 const inter = Inter({
     weight: ['500', '700'],
@@ -33,15 +32,7 @@ export default function RootLayout({
             suppressHydrationWarning
         >
             <body>
-                <ThemeProvider
-                    attribute="class"
-                    defaultTheme="system"
-                    enableSystem
-                    disableTransitionOnChange
-                >
-                    {children}
-                    <Toaster richColors />
-                </ThemeProvider>
+                <Providers>{children}</Providers>
             </body>
         </html>
     )

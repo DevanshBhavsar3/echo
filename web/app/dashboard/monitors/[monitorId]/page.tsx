@@ -1,7 +1,4 @@
-import { auth } from '@/app/auth'
-import { redirect } from 'next/navigation'
 import { getMonitorDetails } from '@/app/actions/website'
-
 import {
     ChevronLeft,
     Globe,
@@ -26,12 +23,6 @@ export default async function MonitorPage({
     params: Promise<{ monitorId: string }>
 }) {
     const { monitorId } = await params
-    const user = await auth()
-
-    if (!user?.user.id) {
-        return redirect('/login')
-    }
-
     const monitor = await getMonitorDetails(monitorId)
 
     if (!monitor) {

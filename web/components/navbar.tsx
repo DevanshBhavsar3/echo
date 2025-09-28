@@ -3,10 +3,10 @@ import { Button } from './ui/button'
 import Link from 'next/link'
 import { ModeToggle } from './theme-toggle'
 import { HeaderLine } from './header-line'
-import { auth } from '@/app/auth'
+import { getUser } from '@/app/actions/auth'
 
 export async function Navbar() {
-    const user = await auth()
+    const isLoggedIn = (await getUser())?.email ? true : false
 
     return (
         <div className="bg-background fixed top-0 flex w-full flex-col items-center justify-center">
@@ -45,7 +45,7 @@ export async function Navbar() {
                 </a>
                 <ModeToggle />
 
-                {user?.user.id ? (
+                {isLoggedIn ? (
                     <Link href={'/dashboard/monitors'}>
                         <Button variant={'outline'}>Dashboard</Button>
                     </Link>

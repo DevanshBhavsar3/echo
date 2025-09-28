@@ -42,7 +42,7 @@ func (h *WebsiteHandler) AddWebsite(c *fiber.Ctx) error {
 		})
 	}
 
-	userID := c.Locals("userID").(string)
+	user := c.Locals("user").(pkg.JWTPayload)
 
 	freq, err := time.ParseDuration(body.Frequency)
 	if err != nil {
@@ -73,7 +73,7 @@ func (h *WebsiteHandler) AddWebsite(c *fiber.Ctx) error {
 		newWebsite.Regions = append(newWebsite.Regions, *region)
 	}
 
-	id, err := h.websiteStorage.CreateWebsite(c.Context(), newWebsite, userID)
+	id, err := h.websiteStorage.CreateWebsite(c.Context(), newWebsite, user.ID)
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Error creating website.",
@@ -86,16 +86,16 @@ func (h *WebsiteHandler) AddWebsite(c *fiber.Ctx) error {
 }
 
 func (h *WebsiteHandler) GetAllWebsites(c *fiber.Ctx) error {
-	userID := c.Locals("userID").(string)
+	user := c.Locals("user").(pkg.JWTPayload)
 
-	websites, err := h.websiteStorage.GetAllWebsites(c.Context(), userID)
+	websites, err := h.websiteStorage.GetAllWebsites(c.Context(), user.ID)
 	if err != nil && err != store.ErrNotFound {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Error getting websites.",
 		})
 	}
 
-	var response types.GetAllWebsitesResponse
+	var response types.GetAllWebsitesResponse = types.GetAllWebsitesResponse{}
 
 	for _, w := range websites {
 		ticks, err := h.tickStorage.GetLatestStatus(c.Context(), w.ID)
@@ -141,7 +141,7 @@ var DefaultUptimeRanges = []store.Range{
 }
 
 func (h *WebsiteHandler) GetWebsiteById(c *fiber.Ctx) error {
-	userID := c.Locals("userID").(string)
+	user := c.Locals("user").(pkg.JWTPayload)
 	websiteId := c.Params("id")
 
 	err := uuid.Validate(websiteId)
@@ -151,7 +151,7 @@ func (h *WebsiteHandler) GetWebsiteById(c *fiber.Ctx) error {
 		})
 	}
 
-	website, err := h.websiteStorage.GetWebsiteById(c.Context(), websiteId, userID)
+	website, err := h.websiteStorage.GetWebsiteById(c.Context(), websiteId, user.ID)
 	if err != nil {
 		switch {
 		case errors.Is(err, store.ErrNotFound):
@@ -185,7 +185,7 @@ func (h *WebsiteHandler) GetWebsiteById(c *fiber.Ctx) error {
 }
 
 func (h *WebsiteHandler) DeleteWebsite(c *fiber.Ctx) error {
-	userID := c.Locals("userID").(string)
+	user := c.Locals("user").(pkg.JWTPayload)
 	websiteId := c.Params("id")
 
 	err := uuid.Validate(websiteId)
@@ -195,7 +195,7 @@ func (h *WebsiteHandler) DeleteWebsite(c *fiber.Ctx) error {
 		})
 	}
 
-	err = h.websiteStorage.DeleteWebsite(c.Context(), websiteId, userID)
+	err = h.websiteStorage.DeleteWebsite(c.Context(), websiteId, user.ID)
 	if err != nil {
 		switch {
 		case errors.Is(err, store.ErrNotFound):
@@ -213,7 +213,7 @@ func (h *WebsiteHandler) DeleteWebsite(c *fiber.Ctx) error {
 }
 
 func (h *WebsiteHandler) UpdateWebsite(c *fiber.Ctx) error {
-	userID := c.Locals("userID").(string)
+	user := c.Locals("user").(pkg.JWTPayload)
 	websiteId := c.Params("id")
 
 	var body types.UpdateWebsiteBody
@@ -260,7 +260,7 @@ func (h *WebsiteHandler) UpdateWebsite(c *fiber.Ctx) error {
 		updatedWebsite.Regions = append(updatedWebsite.Regions, *region)
 	}
 
-	err = h.websiteStorage.UpdateWebsite(c.Context(), updatedWebsite, userID)
+	err = h.websiteStorage.UpdateWebsite(c.Context(), updatedWebsite, user.ID)
 	if err != nil {
 		switch {
 		case errors.Is(err, store.ErrNotFound):

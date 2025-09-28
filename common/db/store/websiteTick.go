@@ -111,7 +111,7 @@ func (s *WebsiteTickStorage) GetLatestStatus(ctx context.Context, websiteID stri
 	}
 	defer rows.Close()
 
-	var status []WebsiteTick
+	var status []WebsiteTick = []WebsiteTick{}
 
 	for rows.Next() {
 		var tickTime pgtype.Timestamptz

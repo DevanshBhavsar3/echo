@@ -1,36 +1,13 @@
-import { DataTable, Monitor } from './data-table'
-import { auth } from '../../auth'
-import { redirect } from 'next/navigation'
-import { API_URL } from '../../constants'
-import axios from 'axios'
+import { DataTable } from './data-table'
 import { DialogBox } from '@/components/dashboard/dialog'
-import { createWebsite } from '../../actions/website'
+import { createWebsite, getAllWebsites } from '../../actions/website'
 import { DialogTrigger } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Search } from 'lucide-react'
 
 export default async function DashboardPage() {
-    const user = await auth()
-
-    if (!user?.user.id) {
-        return redirect('/login')
-    }
-
-    let data: Monitor[] = []
-
-    try {
-        const res = await axios.get(`${API_URL}/website`, {
-            headers: {
-                Authorization: `Bearer ${user.token}`,
-            },
-        })
-
-        data = (res.data as Monitor[]) || []
-    } catch (error) {
-        console.error('Error fetching data:', error)
-        redirect('/error')
-    }
+    const data = await getAllWebsites()
 
     return (
         <>

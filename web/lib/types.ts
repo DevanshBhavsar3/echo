@@ -53,3 +53,12 @@ export type Metrics = {
     status: Latencies
     availability: Latencies
 }
+
+export type User = {
+    id: string
+    email: string
+    name: string
+    image: string
+    createdAt: string
+    updatedAt: string
+}

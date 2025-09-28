@@ -55,7 +55,7 @@ func main() {
 				}
 
 				// Check if the website is of this worker's region
-				var supportedRegion bool
+				var supportedRegion bool = false
 				for _, r := range website.Regions {
 					if r.Name == REGION {
 						supportedRegion = true

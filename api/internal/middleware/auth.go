@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -36,9 +38,24 @@ func AuthMiddleware(c *fiber.Ctx) error {
 	}
 
 	claims, _ := jwtToken.Claims.(jwt.MapClaims)
-	userID := claims["sub"].(string)
+	payload := claims["sub"].(map[string]interface{})
 
-	// Add userID to request body
-	c.Locals("userID", userID)
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Invalid token.",
+		})
+	}
+
+	user := pkg.JWTPayload{}
+	if err := json.Unmarshal(body, &user); err != nil {
+		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Invalid token.",
+		})
+	}
+
+	fmt.Println(user)
+
+	c.Locals("user", user)
 	return c.Next()
 }

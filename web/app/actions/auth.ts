@@ -1,13 +1,14 @@
 'use server'
 
-import axios, { AxiosError } from 'axios'
-import { loginSchema, registerSchema } from '@/lib/types'
-import { AuthError } from 'next-auth'
-import { API_URL } from '../constants'
+import { AxiosError } from 'axios'
+import { loginSchema, registerSchema, User } from '@/lib/types'
 import { redirect } from 'next/navigation'
-import { signIn } from '../auth'
+import { cookies } from 'next/headers'
+import apiClient from '@/lib/axios'
 
 export async function register(_: unknown, formData: FormData) {
+    const cookieStore = await cookies()
+
     const parsedData = registerSchema.safeParse({
         name: formData.get('name'),
         email: formData.get('email'),
@@ -22,12 +23,14 @@ export async function register(_: unknown, formData: FormData) {
     }
 
     try {
-        await axios.post(`${API_URL}/auth/register`, {
+        const res = await apiClient.post(`/auth/register`, {
             ...parsedData.data,
-            avatar:
+            image:
                 'https://api.dicebear.com/6.x/initials/svg?seed=' +
                 parsedData.data.name,
         })
+
+        cookieStore.set('token', res.data.token)
     } catch (error) {
         if (error instanceof AxiosError) {
             return {
@@ -42,10 +45,11 @@ export async function register(_: unknown, formData: FormData) {
         }
     }
 
-    redirect('/login')
+    redirect('/dashboard/monitors')
 }
 
 export async function login(_: unknown, formData: FormData) {
+    const cookieStore = await cookies()
     const values = Object.fromEntries(formData.entries())
 
     const parsedData = loginSchema.safeParse({
@@ -60,18 +64,48 @@ export async function login(_: unknown, formData: FormData) {
     const { email, password } = parsedData.data
 
     try {
-        await signIn('credentials', {
+        const res = await apiClient.post(`/auth/login`, {
             email,
             password,
-            redirect: false,
         })
+
+        cookieStore.set('token', res.data.token)
     } catch (error) {
-        if (error instanceof AuthError) {
-            return { error: error.cause?.err?.message }
+        if (error instanceof AxiosError) {
+            return {
+                error:
+                    error.response?.data?.error ||
+                    'An error occurred during login.',
+            }
         }
 
         return { error: 'An unexpected error occurred during login.' }
     }
 
     redirect('/dashboard/monitors')
+}
+
+export async function getUser(): Promise<User | { error: string }> {
+    const cookieStore = await cookies()
+    const token = cookieStore.get('token')?.value
+
+    if (!token) {
+        return { error: 'No token found' }
+    }
+
+    try {
+        const res = await apiClient.get(`/auth/me`)
+
+        return res.data.user
+    } catch (error) {
+        if (error instanceof AxiosError) {
+            return {
+                error:
+                    error.response?.data?.error ||
+                    'An error occurred getting user info.',
+            }
+        }
+
+        return { error: 'An unexpected error occurred during user retrieval.' }
+    }
 }

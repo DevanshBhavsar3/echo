@@ -5,7 +5,7 @@ import "github.com/DevanshBhavsar3/echo/common/db/store"
 type RegisterUserBody struct {
 	Name     string `json:"name" validate:"min=3,max=30"`
 	Email    string `json:"email" validate:"email,max=255"`
-	Avatar   string `json:"avatar" validate:"url"`
+	Image    string `json:"image" validate:"url"`
 	Password string `json:"password" validate:"min=8,max=72"`
 }
 
