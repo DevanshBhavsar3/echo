@@ -11,6 +11,8 @@ import {
     SidebarMenuItem,
 } from '../ui/sidebar'
 import { Globe, Radio } from 'lucide-react'
+import { NavUser } from './nav-user'
+import { getUser } from '@/app/actions/auth'
 
 const data = {
     main: [
@@ -30,6 +32,8 @@ const data = {
 export async function DashboardSidebar({
     ...props
 }: React.ComponentProps<typeof Sidebar>) {
+    const user = await getUser()
+
     return (
         <Sidebar collapsible="offcanvas" {...props}>
             <SidebarHeader>
@@ -69,7 +73,7 @@ export async function DashboardSidebar({
                     </SidebarGroupContent>
                 </SidebarGroup>
             </SidebarContent>
-            <SidebarFooter>{/*<NavUser user={user.user} />*/}</SidebarFooter>
+            <SidebarFooter>{user && <NavUser user={user} />}</SidebarFooter>
         </Sidebar>
     )
 }

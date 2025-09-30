@@ -1,17 +1,17 @@
 import { Navbar } from '@/components/navbar'
 import { Button } from '@/components/ui/button'
 import { HoverBorderGradient } from '@/components/ui/hover-border-gradient'
+import { isLoggedIn } from '@/lib/auth'
 import Link from 'next/link'
-import { getUser } from './actions/auth'
 
 export default async function HomePage() {
-    const user = await getUser()
+    const loginStatus = await isLoggedIn()
+
     return (
         <div className="relative flex flex-col items-center justify-center px-6 md:px-10">
             <Navbar />
             <main className="flex min-h-svh w-full max-w-md flex-col items-center justify-center md:max-w-7xl">
                 <div className="grid h-full w-full gap-6">
-                    {'EMAIL: ' + JSON.stringify(user)}
                     <HoverBorderGradient
                         as={'text'}
                         className="bg-background text-foreground flex items-center"
@@ -31,7 +31,7 @@ export default async function HomePage() {
 
                     <div className="grid gap-3">
                         <div className="grid w-fit grid-cols-2 items-center gap-3">
-                            {user?.token ? (
+                            {loginStatus ? (
                                 <Link href={'/dashboard/monitors'}>
                                     <Button size={'sm'}>Dashboard</Button>
                                 </Link>

@@ -85,27 +85,23 @@ export async function login(_: unknown, formData: FormData) {
     redirect('/dashboard/monitors')
 }
 
-export async function getUser(): Promise<User | { error: string }> {
+export async function logout() {
     const cookieStore = await cookies()
-    const token = cookieStore.get('token')?.value
+    cookieStore.delete('token')
 
-    if (!token) {
-        return { error: 'No token found' }
-    }
+    redirect('/login')
+}
 
+export async function getUser(): Promise<User | null> {
     try {
         const res = await apiClient.get(`/auth/me`)
 
-        return res.data.user
+        return res.data
     } catch (error) {
         if (error instanceof AxiosError) {
-            return {
-                error:
-                    error.response?.data?.error ||
-                    'An error occurred getting user info.',
-            }
+            console.error(error.response?.data?.error)
         }
-
-        return { error: 'An unexpected error occurred during user retrieval.' }
     }
+
+    return null
 }

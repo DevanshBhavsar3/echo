@@ -17,6 +17,7 @@ import {
     DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
+import { logout } from '@/app/actions/auth'
 
 export function NavUser({
     user,
@@ -86,7 +87,7 @@ export function NavUser({
                             </DropdownMenuItem>
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={logout}>
                             <LogOut />
                             Log out
                         </DropdownMenuItem>

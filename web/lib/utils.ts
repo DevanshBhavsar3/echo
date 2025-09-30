@@ -5,12 +5,6 @@ export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs))
 }
 
-export function getDateBeforeDays(day: number) {
-    return new Date(
-        new Date().setDate(new Date().getDate() - day),
-    ).toISOString()
-}
-
 // Convert monitor.frequency (e.g., "30s", "1m", "3m", "5m") to milliseconds
 export function frequencyToMs(freq: string): number {
     const match = freq.match(/^(\d+)([sm])$/)

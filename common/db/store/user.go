@@ -15,7 +15,7 @@ type User struct {
 	Name      string    `json:"name"`
 	Email     string    `json:"email"`
 	Image     string    `json:"image"`
-	Password  password  `json:"password"`
+	Password  password  `json:"password,omitzero"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }

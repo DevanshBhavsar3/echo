@@ -38,7 +38,7 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 		})
 	}
 
-	user := &store.User{
+	user := store.User{
 		Name:  body.Name,
 		Email: body.Email,
 		Image: body.Image,
@@ -51,7 +51,7 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 		})
 	}
 
-	newUser, err := h.userStorage.Create(c.Context(), *user)
+	newUser, err := h.userStorage.Create(c.Context(), user)
 	if err != nil {
 		switch {
 		case errors.Is(err, store.ErrDuplicateEmail):
@@ -154,25 +154,21 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	})
 }
 
-func (h *AuthHandler) Logout(c *fiber.Ctx) error {
-	cookie := fiber.Cookie{Name: "token", Expires: time.Now()}
-
-	c.Cookie(&cookie)
-
-	return c.Status(http.StatusOK).JSON(fiber.Map{
-		"msg": "Logged out successfully.",
-	})
-}
-
 func (h *AuthHandler) GetUser(c *fiber.Ctx) error {
 	user := c.Locals("user").(pkg.JWTPayload)
 
 	userData, err := h.userStorage.GetById(c.Context(), user.ID)
 	if err != nil {
+		if errors.Is(err, store.ErrNotFound) {
+			return c.Status(http.StatusNotFound).JSON(fiber.Map{
+				"error": "User not found.",
+			})
+		}
+
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Can't get user data.",
 		})
 	}
 
-	return c.Status(http.StatusOK).JSON(userData)
+	return c.Status(http.StatusOK).JSON(*userData)
 }

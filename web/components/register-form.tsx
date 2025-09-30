@@ -16,7 +16,6 @@ import { GoogleIcon } from './assets/google'
 import { GithubIcon } from './assets/github'
 import { useActionState } from 'react'
 import { register } from '@/app/actions/auth'
-import { signIn } from 'next-auth/react'
 
 export function RegisterForm({
     className,
@@ -129,13 +128,7 @@ export function RegisterForm({
                             <GoogleIcon />
                             Login with Google
                         </Button>
-                        <Button
-                            variant="outline"
-                            className="w-full"
-                            onClick={() => {
-                                signIn('github')
-                            }}
-                        >
+                        <Button variant="outline" className="w-full">
                             <GithubIcon />
                             Login with GitHub
                         </Button>

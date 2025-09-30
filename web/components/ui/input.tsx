@@ -10,7 +10,7 @@ function Input({ icon, className, type, ...props }: InputProps) {
     return (
         <div className="group relative flex items-center">
             {icon && (
-                <span className="text-muted-foreground group-focus-within:text-primary-foreground absolute left-3 inline-flex items-center justify-center">
+                <span className="text-muted-foreground group-focus-within:text-foreground absolute left-3 inline-flex items-center justify-center">
                     {icon}
                 </span>
             )}

@@ -30,10 +30,7 @@ export default async function DashboardPage() {
                         onSubmitAction={createWebsite}
                     >
                         <DialogTrigger asChild>
-                            <Button
-                                size="lg"
-                                className="hidden text-sm font-medium sm:flex"
-                            >
+                            <Button className="hidden text-sm font-medium sm:flex">
                                 Add Monitor
                             </Button>
                         </DialogTrigger>

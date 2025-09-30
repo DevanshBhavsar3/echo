@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -53,8 +52,6 @@ func AuthMiddleware(c *fiber.Ctx) error {
 			"error": "Invalid token.",
 		})
 	}
-
-	fmt.Println(user)
 
 	c.Locals("user", user)
 	return c.Next()
