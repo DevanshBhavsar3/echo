@@ -85,6 +85,10 @@ export async function login(_: unknown, formData: FormData) {
     redirect('/dashboard/monitors')
 }
 
+export async function oauth(provider: string) {
+    redirect(`${process.env.NEXT_PUBLIC_API_URL}/oauth/${provider}`)
+}
+
 export async function logout() {
     const cookieStore = await cookies()
     cookieStore.delete('token')

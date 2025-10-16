@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/DevanshBhavsar3/echo/api/internal/handler/v1"
@@ -14,7 +15,7 @@ import (
 
 func SetupRoutes(app *fiber.App, handlers handler.Handler) {
 	corsConfig := cors.Config{
-		AllowOrigins: config.Get("FRONTEND_URL"),
+		AllowOrigins: fmt.Sprintf("%s,%s", config.Get("FRONTEND_URL"), config.Get("DOCKER_FRONTEND_URL")),
 	}
 
 	// Middlewares
@@ -34,6 +35,10 @@ func SetupRoutes(app *fiber.App, handlers handler.Handler) {
 	authRouter.Post("/register", handlers.Auth.Register)
 	authRouter.Post("/login", handlers.Auth.Login)
 	authRouter.Get("/me", middleware.AuthMiddleware, handlers.Auth.GetUser)
+
+	oauthRouter := v1Router.Group("/oauth")
+	oauthRouter.Get("/:provider", handlers.Auth.OAuthLogin)
+	oauthRouter.Get("/:provider/callback", handlers.Auth.OAuthCallback)
 
 	// Website routes
 	websiteRouter := v1Router.Group("/website", middleware.AuthMiddleware)

@@ -2,10 +2,10 @@
 
 - [x] docker compose
 - [x] frontend for ticks
-- [ ] oauth2
-- [ ] tests for api
+- [x] oauth2
 - [ ] deployment
 - [ ] UI revamp
+- [ ] tests for api
 - [ ] teams/organizations
 - [ ] status pages
 - [ ] Preview of Server Logs

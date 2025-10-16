@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS "account";
+
+ALTER TABLE "user"
+ADD COLUMN "password" TEXT NOT NULL;

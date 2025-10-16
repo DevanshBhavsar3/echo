@@ -15,7 +15,7 @@ import Link from 'next/link'
 import { GoogleIcon } from './assets/google'
 import { GithubIcon } from './assets/github'
 import { useActionState } from 'react'
-import { register } from '@/app/actions/auth'
+import { oauth, register } from '@/app/actions/auth'
 
 export function RegisterForm({
     className,
@@ -124,11 +124,19 @@ export function RegisterForm({
                         </span>
                     </div>
                     <div className="flex flex-col gap-4">
-                        <Button variant="outline" className="w-full">
+                        <Button
+                            variant="outline"
+                            className="w-full"
+                            onClick={() => oauth('google')}
+                        >
                             <GoogleIcon />
                             Login with Google
                         </Button>
-                        <Button variant="outline" className="w-full">
+                        <Button
+                            variant="outline"
+                            className="w-full"
+                            onClick={() => oauth('github')}
+                        >
                             <GithubIcon />
                             Login with GitHub
                         </Button>

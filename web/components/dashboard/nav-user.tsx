@@ -18,13 +18,12 @@ import {
 } from '../ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 import { logout } from '@/app/actions/auth'
+import { User } from '@/lib/types'
 
-export function NavUser({
-    user,
-}: {
-    user: { name: string; email: string; image: string }
-}) {
+export function NavUser({ user }: { user: User }) {
     const { isMobile } = useSidebar()
+
+    console.log(user)
 
     return (
         <SidebarMenu>
@@ -35,7 +34,7 @@ export function NavUser({
                             size="lg"
                             className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                         >
-                            <Avatar className="h-8 w-8 rounded-lg grayscale">
+                            <Avatar className="h-8 w-8 rounded-lg">
                                 <AvatarImage src={user.image} alt={user.name} />
                                 <AvatarFallback className="rounded-lg">
                                     EC
