@@ -1,5 +1,5 @@
 import { ProgressChart } from '@/components/assets/progess-chart'
-import { LoginForm } from '@/components/auth/signin-form'
+import { AdminForm } from '@/components/auth/admin-form'
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -9,7 +9,7 @@ import {
     BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 
-export default async function LoginPage() {
+export default async function AdminLoginPage() {
     return (
         <div className="flex min-h-svh w-full flex-col items-center justify-center p-6 text-left md:p-10">
             <Breadcrumb className="absolute top-0 left-0 z-10 w-full px-4 py-2">
@@ -19,13 +19,13 @@ export default async function LoginPage() {
                     </BreadcrumbItem>
                     <BreadcrumbSeparator />
                     <BreadcrumbItem>
-                        <BreadcrumbPage>Login</BreadcrumbPage>
+                        <BreadcrumbPage>Admin Login</BreadcrumbPage>
                     </BreadcrumbItem>
                 </BreadcrumbList>
             </Breadcrumb>
 
             <div className="z-10 w-full max-w-sm">
-                <LoginForm />
+                <AdminForm />
             </div>
 
             <ProgressChart />

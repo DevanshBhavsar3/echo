@@ -1,7 +1,7 @@
 'use server'
 
-import { Tick } from '../dashboard/monitors/[monitorId]/page'
 import apiClient from '@/lib/axios'
+import { Tick } from '../dashboard/(user)/monitors/[monitorId]/page'
 
 export async function getTicks(
     monitorId: string,

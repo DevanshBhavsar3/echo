@@ -1,7 +1,14 @@
 'use client'
 
-import { Label } from '../ui/label'
+import { fetchRegions } from '@/app/actions/region'
+import { pingWebsite } from '@/app/actions/website'
+import { useDebounce } from '@/hooks/use-debounce'
+import { CircleCheckBig, CircleX, LoaderCircle } from 'lucide-react'
+import { startTransition, useActionState, useEffect, useState } from 'react'
+import ReactCountryFlag from 'react-country-flag'
+import { Monitor } from '../pages/dashboard/monitors/data-table'
 import { Button } from '../ui/button'
+import { Checkbox } from '../ui/checkbox'
 import {
     Dialog,
     DialogClose,
@@ -12,10 +19,7 @@ import {
     DialogTitle,
 } from '../ui/dialog'
 import { Input } from '../ui/input'
-import { Checkbox } from '../ui/checkbox'
-import ReactCountryFlag from 'react-country-flag'
-import { pingWebsite } from '@/app/actions/website'
-import { startTransition, useActionState, useEffect, useState } from 'react'
+import { Label } from '../ui/label'
 import {
     Select,
     SelectContent,
@@ -23,10 +27,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from '../ui/select'
-import { useDebounce } from '@/hooks/use-debounce'
-import { CircleCheckBig, CircleX, LoaderCircle } from 'lucide-react'
-import { Monitor } from '@/app/dashboard/monitors/data-table'
-import { fetchRegions } from '@/app/actions/region'
 
 const frequencies = [
     { value: '30s', label: '30 Seconds' },

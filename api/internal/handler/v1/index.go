@@ -20,10 +20,12 @@ type Handler struct {
 	}
 	Region interface {
 		GetRegions(c *fiber.Ctx) error
+		CreateRegion(c *fiber.Ctx) error
 	}
 	Auth interface {
 		Register(c *fiber.Ctx) error
 		Login(c *fiber.Ctx) error
+		AdminLogin(c *fiber.Ctx) error
 		OAuthLogin(c *fiber.Ctx) error
 		OAuthCallback(c *fiber.Ctx) error
 		GetUser(c *fiber.Ctx) error

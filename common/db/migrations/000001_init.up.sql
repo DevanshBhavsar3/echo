@@ -9,7 +9,7 @@ CREATE TABLE "website" (
 
 CREATE TABLE "region" (
                         "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                        "name" TEXT NOT NULL
+                        "name" TEXT UNIQUE NOT NULL
 );
 
 CREATE TABLE "website_tick" (

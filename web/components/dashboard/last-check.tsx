@@ -1,6 +1,6 @@
-import { Tick } from '@/app/dashboard/monitors/data-table'
 import dayjs from '@/lib/dayjs'
 import { useEffect, useState } from 'react'
+import { Tick } from '../pages/dashboard/monitors/data-table'
 
 export function LastChecked({
     ticks = [],

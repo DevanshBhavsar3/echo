@@ -1,6 +1,6 @@
 'use client'
 
-import { cn } from '@/lib/utils'
+import { oauth, register } from '@/app/actions/auth'
 import { Button } from '@/components/ui/button'
 import {
     Card,
@@ -11,11 +11,11 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 import Link from 'next/link'
-import { GoogleIcon } from './assets/google'
-import { GithubIcon } from './assets/github'
 import { useActionState } from 'react'
-import { oauth, register } from '@/app/actions/auth'
+import { GithubIcon } from '../assets/github'
+import { GoogleIcon } from '../assets/google'
 
 export function RegisterForm({
     className,

@@ -1,9 +1,11 @@
 'use client'
 
 import { getTicks } from '@/app/actions/ticks'
-import { Tick } from '@/app/dashboard/monitors/[monitorId]/page'
-import { Monitor, Region } from '@/app/dashboard/monitors/data-table'
-import { RegionSelect } from '@/components/region-select'
+import {
+    Monitor,
+    Region,
+    Tick,
+} from '@/components/pages/dashboard/monitors/data-table'
 import {
     Card,
     CardAction,
@@ -29,6 +31,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { frequencyToMs } from '@/lib/utils'
 import { useEffect, useState } from 'react'
 import { CartesianGrid, Line, LineChart, XAxis } from 'recharts'
+import { RegionSelect } from './region-select'
 
 const chartConfig = {
     responseTime: {

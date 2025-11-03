@@ -1,11 +1,14 @@
 'use client'
 
 import { getMonitorMetrics } from '@/app/actions/website'
-import { MetricCard } from './metric-card'
-import { useEffect, useState } from 'react'
+import {
+    Monitor,
+    Region,
+} from '@/components/pages/dashboard/monitors/data-table'
 import { Metrics } from '@/lib/types'
-import { Monitor, Region } from '@/app/dashboard/monitors/data-table'
-import { RegionSelect } from '@/components/region-select'
+import { useEffect, useState } from 'react'
+import { MetricCard } from './metric-card'
+import { RegionSelect } from './region-select'
 
 interface MetricsProps {
     monitor: Monitor

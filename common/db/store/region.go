@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -59,9 +60,16 @@ func (s *RegionStorage) AddRegion(ctx context.Context, name string) error {
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	_, err := s.db.Query(ctx, query, name)
+	_, err := s.db.Exec(ctx, query, name)
 	if err != nil {
-		return err
+		var pgError *pgconn.PgError
+		if errors.As(err, &pgError) {
+			if pgError.Code == "23505" {
+				return ErrDuplicateRegion
+			}
+		} else {
+			return err
+		}
 	}
 
 	return nil
@@ -92,3 +100,7 @@ func (s *RegionStorage) GetRegionByName(ctx context.Context, name string) (*Regi
 
 	return &region, nil
 }
+
+var (
+	ErrDuplicateRegion = errors.New("region code already exists")
+)

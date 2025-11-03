@@ -18,3 +18,8 @@ type AuthResponse struct {
 	Token string     `json:"token"`
 	User  store.User `json:"user"`
 }
+
+type UserResponse struct {
+	store.User
+	IsAdmin bool `json:"isAdmin"`
+}

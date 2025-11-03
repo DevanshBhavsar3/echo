@@ -27,22 +27,16 @@ func StartInterval(ctx context.Context, storage store.Storage, client redisClien
 }
 
 func AddWebsite(ctx context.Context, storage store.Storage, client redisClient.RedisClient, freq string) {
-	websites, err := storage.Website.GetWebsiteByFrequency(ctx, freq)
+	payload, err := storage.Website.GetWebsiteByFrequency(ctx, freq)
 	if err != nil {
 		log.Printf("Failed to get websites data:\n%v", err)
 		return
 	}
 
-	log.Printf("Publishing %d websites for frequency %s", len(websites), freq)
+	log.Printf("Publishing %d websites for frequency %s", len(payload), freq)
 
-	for _, w := range websites {
-		minimalWebsite := store.Website{
-			ID:      w.ID,
-			Url:     w.Url,
-			Regions: w.Regions,
-		}
-
-		data, err := json.Marshal(minimalWebsite)
+	for _, w := range payload {
+		data, err := json.Marshal(w)
 		if err != nil {
 			log.Printf("failed to marshal website:\n%v", err)
 			continue

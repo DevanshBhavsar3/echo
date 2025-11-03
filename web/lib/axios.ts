@@ -1,9 +1,8 @@
-import { API_URL } from '@/app/constants'
 import axios from 'axios'
 import { cookies } from 'next/headers'
 
 const apiClient = axios.create({
-    baseURL: API_URL,
+    baseURL: process.env.NEXT_PUBLIC_DOCKER_API_URL,
     headers: {
         'Content-Type': 'application/json',
     },

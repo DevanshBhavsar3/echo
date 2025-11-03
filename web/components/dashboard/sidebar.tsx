@@ -1,4 +1,8 @@
+'use client'
+
+import { Globe, Radio } from 'lucide-react'
 import Link from 'next/link'
+import { useAuth } from '../providers/auth-provider'
 import {
     Sidebar,
     SidebarContent,
@@ -10,9 +14,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '../ui/sidebar'
-import { Globe, Radio } from 'lucide-react'
 import { NavUser } from './nav-user'
-import { getUser } from '@/app/actions/auth'
 
 const data = {
     main: [
@@ -29,10 +31,10 @@ const data = {
     ],
 }
 
-export async function DashboardSidebar({
+export function DashboardSidebar({
     ...props
 }: React.ComponentProps<typeof Sidebar>) {
-    const user = await getUser()
+    const { user } = useAuth()
 
     return (
         <Sidebar collapsible="offcanvas" {...props}>

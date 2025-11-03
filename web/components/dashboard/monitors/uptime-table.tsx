@@ -1,8 +1,7 @@
 'use client'
 
-import dayjs from '@/lib/dayjs'
 import { getUptime } from '@/app/actions/website'
-import { Monitor } from '@/app/dashboard/monitors/data-table'
+import { Monitor } from '@/components/pages/dashboard/monitors/data-table'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import {
@@ -18,6 +17,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table'
+import dayjs from '@/lib/dayjs'
 import {
     ColumnDef,
     flexRender,

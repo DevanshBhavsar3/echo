@@ -1,12 +1,12 @@
-import { Dispatch, SetStateAction } from 'react'
+import { Region } from '@/components/pages/dashboard/monitors/data-table'
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from './ui/select'
-import { Region } from '@/app/dashboard/monitors/data-table'
+} from '@/components/ui/select'
+import { Dispatch, SetStateAction } from 'react'
 import ReactCountryFlag from 'react-country-flag'
 
 interface RegionSelectProps {

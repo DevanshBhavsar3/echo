@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -80,10 +81,12 @@ func (s *UserStorage) Create(ctx context.Context, u User, provider string) (*Use
 
 	err = tx.QueryRow(user_ctx, user_query, u.Name, u.Email, u.Image).Scan(&user.ID, &user.Name, &user.Email, &user.Image, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
-		switch {
-		case err.Error() == `ERROR: duplicate key value violates unique constraint "user_email_key" (SQLSTATE 23505)`:
-			return nil, ErrDuplicateEmail
-		default:
+		var pgError *pgconn.PgError
+		if errors.As(err, &pgError) {
+			if pgError.Code == "23505" {
+				return nil, ErrDuplicateEmail
+			}
+		} else {
 			return nil, err
 		}
 	}
@@ -109,19 +112,19 @@ func (s *UserStorage) Create(ctx context.Context, u User, provider string) (*Use
 	return &user, nil
 }
 
-func (s *UserStorage) GetByEmail(ctx context.Context, email string) (*User, error) {
+func (s *UserStorage) GetByEmail(ctx context.Context, email string, provider string) (*User, error) {
 	query := `
 		SELECT u.id, u.name, u.email, u.image, a.password, u.created_at, u.updated_at
 		FROM "user" u
 		JOIN "account" a ON u.id = a.user_id
-		WHERE email = $1
+		WHERE u.email = $1 AND a.provider = $2
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
 	user := &User{}
-	err := s.db.QueryRow(ctx, query, email).Scan(
+	err := s.db.QueryRow(ctx, query, email, provider).Scan(
 		&user.ID,
 		&user.Name,
 		&user.Email,

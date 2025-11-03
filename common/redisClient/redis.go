@@ -15,6 +15,12 @@ type RedisClient struct {
 	Client *redis.Client
 }
 
+type RedisPayload struct {
+	ID         string `json:"id"`
+	Url        string `json:"url"`
+	RegionName string `json:"regionName"`
+}
+
 var WebsiteStream = "echo:websites"
 var DatabaseStream = "echo:ticks"
 

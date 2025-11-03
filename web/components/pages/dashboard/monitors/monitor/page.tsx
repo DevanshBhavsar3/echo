@@ -1,48 +1,11 @@
-import { getMonitorDetails } from '@/app/actions/website'
-import {
-    ChevronLeft,
-    Globe,
-    Link as LinkIcon,
-    Settings,
-    TriangleAlert,
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { UptimeChart } from '@/components/dashboard/monitors/uptime-chart'
-import Link from 'next/link'
 import { MetricsSection } from '@/components/dashboard/monitors/metrics'
+import { UptimeChart } from '@/components/dashboard/monitors/uptime-chart'
 import { UptimeTable } from '@/components/dashboard/monitors/uptime-table'
+import { Button } from '@/components/ui/button'
+import { Globe, LinkIcon, Settings } from 'lucide-react'
+import { Monitor } from '../data-table'
 
-export type Tick = {
-    time: string
-    responseTime: string
-}
-
-export default async function MonitorPage({
-    params,
-}: {
-    params: Promise<{ monitorId: string }>
-}) {
-    const { monitorId } = await params
-    const monitor = await getMonitorDetails(monitorId)
-
-    if (!monitor) {
-        return (
-            <div className="flex flex-1 flex-col">
-                <Link
-                    href={'/dashboard/monitors'}
-                    className="flex items-center hover:underline"
-                >
-                    <ChevronLeft size={16} />
-                    Monitors
-                </Link>
-                <div className="text-muted-foreground flex flex-1 flex-col items-center justify-center gap-3 p-4">
-                    <TriangleAlert size={52} />
-                    <p>The monitor you are looking for does not exist.</p>
-                </div>
-            </div>
-        )
-    }
-
+export function MonitorPage({ monitor }: { monitor: Monitor }) {
     return (
         <>
             <header className="flex w-full shrink-0 items-center gap-2">

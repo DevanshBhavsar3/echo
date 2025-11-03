@@ -47,35 +47,27 @@ func main() {
 			for _, j := range i.Messages {
 				data := j.Values["data"].(string)
 
-				var website store.Website
-				err := json.Unmarshal([]byte(data), &website)
+				var payload redisClient.RedisPayload
+				err := json.Unmarshal([]byte(data), &payload)
 				if err != nil {
 					log.Printf("error parsing redis message:\n%v", err)
 					continue
 				}
 
 				// Check if the website is of this worker's region
-				var supportedRegion bool = false
-				for _, r := range website.Regions {
-					if r.Name == REGION {
-						supportedRegion = true
-						break
-					}
-				}
-
-				if !supportedRegion {
+				if payload.RegionName != REGION {
 					continue
 				}
 
 				// Ping the website
-				status, responseTime := internal.Ping(website.Url)
+				status, responseTime := internal.Ping(payload.Url)
 
 				tick := store.WebsiteTick{
 					Time:           time.Now(),
 					ResponseTimeMS: &responseTime,
 					Status:         status.String(),
 					RegionID:       region.ID,
-					WebsiteID:      &website.ID,
+					WebsiteID:      &payload.ID,
 				}
 
 				encodedTick, err := json.Marshal(tick)

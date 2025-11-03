@@ -71,10 +71,11 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	// Create token
 	claims := jwt.MapClaims{
 		"sub": pkg.JWTPayload{
-			ID:    newUser.ID,
-			Name:  newUser.Name,
-			Email: newUser.Email,
-			Image: newUser.Image,
+			ID:      newUser.ID,
+			Name:    newUser.Name,
+			Email:   newUser.Email,
+			Image:   newUser.Image,
+			IsAdmin: false,
 		},
 		"exp": time.Now().Add(pkg.Exp).Unix(),
 		"iat": time.Now().Unix(),
@@ -110,7 +111,7 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 		})
 	}
 
-	user, err := h.userStorage.GetByEmail(c.Context(), body.Email)
+	user, err := h.userStorage.GetByEmail(c.Context(), body.Email, "email")
 	if err != nil {
 		switch {
 		case errors.Is(err, store.ErrNotFound):
@@ -139,10 +140,69 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	// Create token
 	claims := jwt.MapClaims{
 		"sub": pkg.JWTPayload{
-			ID:    user.ID,
-			Name:  user.Name,
-			Email: user.Email,
-			Image: user.Image,
+			ID:      user.ID,
+			Name:    user.Name,
+			Email:   user.Email,
+			Image:   user.Image,
+			IsAdmin: false,
+		},
+		"exp": time.Now().Add(pkg.Exp).Unix(),
+		"iat": time.Now().Unix(),
+		"nbf": time.Now().Unix(),
+		"iss": pkg.Iss,
+		"aud": pkg.Iss,
+	}
+
+	token, err := pkg.GenerateJWT(claims)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Cannot create token.",
+		})
+	}
+
+	return c.Status(http.StatusOK).JSON(fiber.Map{
+		"token": token,
+	})
+}
+
+func (h *AuthHandler) AdminLogin(c *fiber.Ctx) error {
+	var body struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": "Failed to parse body.",
+		})
+	}
+
+	if err := pkg.Validate.Struct(body); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid data.",
+		})
+	}
+
+	adminUsername := config.Get("ADMIN_USERNAME")
+
+	if body.Username != adminUsername {
+		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Invalid credentials.",
+		})
+	}
+
+	adminPassword := config.Get("ADMIN_PASSWORD")
+
+	if body.Password != adminPassword {
+		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Invalid credentials.",
+		})
+	}
+
+	// Create token
+	claims := jwt.MapClaims{
+		"sub": pkg.JWTPayload{
+			IsAdmin: true,
 		},
 		"exp": time.Now().Add(pkg.Exp).Unix(),
 		"iat": time.Now().Unix(),
@@ -188,7 +248,6 @@ func (h *AuthHandler) OAuthLogin(c *fiber.Ctx) error {
 	return c.Status(http.StatusSeeOther).Redirect(url)
 }
 
-// TODO: Prettify the Error messages
 func (h *AuthHandler) OAuthCallback(c *fiber.Ctx) error {
 	provider := c.Params("provider")
 
@@ -202,7 +261,7 @@ func (h *AuthHandler) OAuthCallback(c *fiber.Ctx) error {
 
 	if providerState != userState {
 		log.Print("Invalid state")
-		return c.Status(http.StatusSeeOther).Redirect(config.Get("FRONTEND_URL") + "/login")
+		return c.Status(http.StatusSeeOther).Redirect(config.Get("FRONTEND_URL") + "/login?error=invalid_state")
 	}
 
 	providerConfig := pkg.OAuthConfig[provider]
@@ -211,37 +270,42 @@ func (h *AuthHandler) OAuthCallback(c *fiber.Ctx) error {
 	token, err := providerConfig.Exchange(context.Background(), code)
 	if err != nil {
 		log.Printf("Invalid code: %v", err)
-		return c.Status(http.StatusSeeOther).Redirect(config.Get("FRONTEND_URL") + "/login")
+		return c.Status(http.StatusSeeOther).Redirect(config.Get("FRONTEND_URL") + "/login?error=invalid_code")
 	}
 
 	oauthUser, err := providerConfig.GetOAuthUser(token)
 	if err != nil {
 		log.Printf("Invalid user data: %v", err)
-		return c.Status(http.StatusSeeOther).Redirect(config.Get("FRONTEND_URL") + "/login")
+		return c.Status(http.StatusSeeOther).Redirect(config.Get("FRONTEND_URL") + "/login?error=invalid_user_data")
 	}
 
-	user, err := h.userStorage.GetByEmail(c.Context(), oauthUser.Email)
+	user, err := h.userStorage.GetByEmail(c.Context(), oauthUser.Email, provider)
 	if err != nil {
 		switch {
 		// Create a user if not found
 		case errors.Is(err, store.ErrNotFound):
 			user, err = h.userStorage.Create(c.Context(), *oauthUser, provider)
 			if err != nil {
-				return c.Status(http.StatusSeeOther).Redirect(config.Get("FRONTEND_URL") + "/login")
+				if errors.Is(err, store.ErrDuplicateEmail) {
+					return c.Status(http.StatusSeeOther).Redirect(config.Get("FRONTEND_URL") + "/login?error=email_already_exists")
+				}
+
+				return c.Status(http.StatusSeeOther).Redirect(config.Get("FRONTEND_URL") + "/login?error=user_creation_failed")
 			}
 		default:
 			log.Printf("Error getting user by email: %v", err)
-			return c.Status(http.StatusSeeOther).Redirect(config.Get("FRONTEND_URL") + "/login")
+			return c.Status(http.StatusSeeOther).Redirect(config.Get("FRONTEND_URL") + "/login?error=internal_error")
 		}
 	}
 
 	// Create token
 	claims := jwt.MapClaims{
 		"sub": pkg.JWTPayload{
-			ID:    user.ID,
-			Name:  user.Name,
-			Email: user.Email,
-			Image: user.Image,
+			ID:      user.ID,
+			Name:    user.Name,
+			Email:   user.Email,
+			Image:   user.Image,
+			IsAdmin: false,
 		},
 		"exp": time.Now().Add(pkg.Exp).Unix(),
 		"iat": time.Now().Unix(),
@@ -252,7 +316,7 @@ func (h *AuthHandler) OAuthCallback(c *fiber.Ctx) error {
 
 	jwtToken, err := pkg.GenerateJWT(claims)
 	if err != nil {
-		return c.Status(http.StatusSeeOther).Redirect(config.Get("FRONTEND_URL") + "/login")
+		return c.Status(http.StatusSeeOther).Redirect(config.Get("FRONTEND_URL") + "/login?error=internal_error")
 	}
 
 	c.Cookie(&fiber.Cookie{
@@ -265,6 +329,12 @@ func (h *AuthHandler) OAuthCallback(c *fiber.Ctx) error {
 
 func (h *AuthHandler) GetUser(c *fiber.Ctx) error {
 	user := c.Locals("user").(pkg.JWTPayload)
+
+	if user.IsAdmin {
+		return c.Status(http.StatusOK).JSON(&types.UserResponse{
+			IsAdmin: true,
+		})
+	}
 
 	userData, err := h.userStorage.GetById(c.Context(), user.ID)
 	if err != nil {
@@ -279,5 +349,10 @@ func (h *AuthHandler) GetUser(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.Status(http.StatusOK).JSON(*userData)
+	response := &types.UserResponse{
+		User:    *userData,
+		IsAdmin: false,
+	}
+
+	return c.Status(http.StatusOK).JSON(response)
 }

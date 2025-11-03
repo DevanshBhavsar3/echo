@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/DevanshBhavsar3/echo/common/redisClient"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -126,15 +127,11 @@ func (s *WebsiteStorage) GetWebsiteById(ctx context.Context, id string, userId s
 	return website, nil
 }
 
-func (s *WebsiteStorage) GetWebsiteByFrequency(ctx context.Context, freq string) ([]Website, error) {
+func (s *WebsiteStorage) GetWebsiteByFrequency(ctx context.Context, freq string) ([]redisClient.RedisPayload, error) {
 	query := `
 		SELECT
             w.id,
             w.url,
-            w.frequency,
-            w.created_at,
-			w.created_by,
-            r.id,
             r.name
         FROM
             website w
@@ -160,39 +157,24 @@ func (s *WebsiteStorage) GetWebsiteByFrequency(ctx context.Context, freq string)
 	}
 	defer rows.Close()
 
-	var websites []Website
+	var payload []redisClient.RedisPayload
 
 	for rows.Next() {
-		var w Website
-		var r Region
+		var p redisClient.RedisPayload
 
 		err = rows.Scan(
-			&w.ID,
-			&w.Url,
-			&w.Frequency,
-			&w.CreatedAt,
-			&w.CreatedBy,
-			&r.ID,
-			&r.Name,
+			&p.ID,
+			&p.Url,
+			&p.RegionName,
 		)
 		if err != nil {
 			return nil, err
 		}
 
-		if len(websites) > 0 {
-			lastWebsite := &websites[len(websites)-1]
-
-			if lastWebsite.ID == w.ID {
-				lastWebsite.Regions = append(lastWebsite.Regions, r)
-				continue
-			}
-		}
-
-		w.Regions = append(w.Regions, r)
-		websites = append(websites, w)
+		payload = append(payload, p)
 	}
 
-	return websites, nil
+	return payload, nil
 }
 
 func (s *WebsiteStorage) GetAllWebsites(ctx context.Context, userId string) ([]Website, error) {

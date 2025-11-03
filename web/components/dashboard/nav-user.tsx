@@ -1,12 +1,9 @@
 'use client'
 
-import {
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
-    useSidebar,
-} from '../ui/sidebar'
+import { logout } from '@/app/actions/auth'
+import { User } from '@/lib/types'
 import { CircleUser, EllipsisVertical, LogOut } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -16,14 +13,15 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
-import { logout } from '@/app/actions/auth'
-import { User } from '@/lib/types'
+import {
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+    useSidebar,
+} from '../ui/sidebar'
 
 export function NavUser({ user }: { user: User }) {
     const { isMobile } = useSidebar()
-
-    console.log(user)
 
     return (
         <SidebarMenu>

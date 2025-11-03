@@ -1,19 +1,27 @@
-import { DataTable } from './data-table'
+'use client'
+
+import { createWebsite } from '@/app/actions/website'
 import { DialogBox } from '@/components/dashboard/dialog'
-import { createWebsite, getAllWebsites } from '../../actions/website'
-import { DialogTrigger } from '@/components/ui/dialog'
+import { useAuth } from '@/components/providers/auth-provider'
 import { Button } from '@/components/ui/button'
+import { DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Search } from 'lucide-react'
+import { redirect } from 'next/navigation'
+import { DataTable, Monitor } from './data-table'
 
-export default async function DashboardPage() {
-    const data = await getAllWebsites()
+export function MonitorsPage({ monitors }: { monitors: Monitor[] }) {
+    const { user } = useAuth()
+
+    if (user && user.isAdmin) {
+        redirect('/dashboard/admin')
+    }
 
     return (
         <>
             <header className="flex w-full shrink-0 items-center gap-2">
                 <h1 className="text-foreground text-4xl font-medium">
-                    Monitor
+                    Monitors
                 </h1>
                 <div className="ml-auto flex items-center gap-2">
                     <Input
@@ -39,7 +47,7 @@ export default async function DashboardPage() {
             </header>
 
             <div className="flex flex-1 flex-col">
-                <DataTable data={data} />
+                <DataTable data={monitors} />
             </div>
         </>
     )

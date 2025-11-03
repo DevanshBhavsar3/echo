@@ -1,5 +1,19 @@
 'use client'
 
+import { deleteWebsite, editWebsite } from '@/app/actions/website'
+import { DialogBox } from '@/components/dashboard/dialog'
+import { LastChecked } from '@/components/dashboard/last-check'
+import { Uptime } from '@/components/dashboard/monitors/uptime-table'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { DialogTrigger } from '@/components/ui/dialog'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
     Table,
     TableBody,
@@ -9,42 +23,28 @@ import {
     TableRow,
 } from '@/components/ui/table'
 import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip'
+import dayjs from '@/lib/dayjs'
+import { cn } from '@/lib/utils'
+import {
     ColumnDef,
     flexRender,
     getCoreRowModel,
     useReactTable,
 } from '@tanstack/react-table'
-import { Button } from '@/components/ui/button'
+import { cva } from 'class-variance-authority'
 import {
-    DropdownMenuTrigger,
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu'
-import {
+    CircleCheck,
+    CircleX,
     Disc2,
     Loader,
     MoreHorizontal,
-    CircleCheck,
-    CircleX,
 } from 'lucide-react'
-import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { deleteWebsite, editWebsite } from '../../actions/website'
-import { DialogBox } from '@/components/dashboard/dialog'
-import { DialogTrigger } from '@/components/ui/dialog'
-import { cva } from 'class-variance-authority'
-import { cn } from '@/lib/utils'
-import {
-    Tooltip,
-    TooltipTrigger,
-    TooltipContent,
-} from '@/components/ui/tooltip'
-import { Badge } from '@/components/ui/badge'
-import { Uptime } from '@/components/dashboard/monitors/uptime-table'
-import dayjs from '@/lib/dayjs'
-import { LastChecked } from '@/components/dashboard/last-check'
+import { useEffect } from 'react'
 
 export type Status = 'up' | 'down' | 'processing'
 

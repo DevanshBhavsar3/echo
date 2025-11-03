@@ -1,12 +1,12 @@
 'use server'
 
+import { Monitor } from '@/components/pages/dashboard/monitors/data-table'
+import apiClient from '@/lib/axios'
+import dayjs from '@/lib/dayjs'
 import { Metrics, websiteSchema } from '@/lib/types'
 import axios, { AxiosError } from 'axios'
 import { revalidatePath } from 'next/cache'
-import { Monitor } from '../dashboard/monitors/data-table'
 import { DateRange } from 'react-day-picker'
-import dayjs from '@/lib/dayjs'
-import apiClient from '@/lib/axios'
 
 export async function getAllWebsites() {
     try {

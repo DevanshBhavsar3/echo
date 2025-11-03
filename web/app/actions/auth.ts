@@ -1,10 +1,15 @@
 'use server'
 
-import { AxiosError } from 'axios'
-import { loginSchema, registerSchema, User } from '@/lib/types'
-import { redirect } from 'next/navigation'
-import { cookies } from 'next/headers'
 import apiClient from '@/lib/axios'
+import {
+    adminLoginSchema,
+    loginSchema,
+    registerSchema,
+    User,
+} from '@/lib/types'
+import { AxiosError } from 'axios'
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 
 export async function register(_: unknown, formData: FormData) {
     const cookieStore = await cookies()
@@ -105,7 +110,46 @@ export async function getUser(): Promise<User | null> {
         if (error instanceof AxiosError) {
             console.error(error.response?.data?.error)
         }
+
+        console.error(error)
     }
 
     return null
+}
+
+export async function adminLogin(_: unknown, formData: FormData) {
+    const cookieStore = await cookies()
+    const values = Object.fromEntries(formData.entries())
+
+    const parsedData = adminLoginSchema.safeParse({
+        username: values['username'],
+        password: values['password'],
+    })
+
+    if (!parsedData.success) {
+        return { error: parsedData.error.issues[0].message }
+    }
+
+    const { username, password } = parsedData.data
+
+    try {
+        const res = await apiClient.post(`/auth/admin`, {
+            username,
+            password,
+        })
+
+        cookieStore.set('token', res.data.token)
+    } catch (error) {
+        if (error instanceof AxiosError) {
+            return {
+                error:
+                    error.response?.data?.error ||
+                    'An error occurred during login.',
+            }
+        }
+
+        return { error: 'An unexpected error occurred during login.' }
+    }
+
+    redirect('/dashboard/admin')
 }

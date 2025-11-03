@@ -27,12 +27,21 @@ export const loginSchema = z.object({
     password: z.string().trim(),
 })
 
+export const adminLoginSchema = z.object({
+    username: z.string(),
+    password: z.string().trim(),
+})
+
 export const websiteSchema = z.object({
     url: z.string().url('Please enter a valid URL.').trim(),
     frequency: z.string().min(1, 'Frequency is required.'),
     regions: z
         .array(z.string())
         .min(1, 'At least one region must be selected.'),
+})
+
+export const regionCodeSchema = z.object({
+    code: z.string().length(2, 'The Country code should have 2 letters.'),
 })
 
 export type MetricData = {
@@ -61,4 +70,5 @@ export type User = {
     image: string
     createdAt: string
     updatedAt: string
+    isAdmin: boolean
 }

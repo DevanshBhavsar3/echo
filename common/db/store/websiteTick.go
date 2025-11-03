@@ -132,7 +132,6 @@ func (s *WebsiteTickStorage) GetLatestStatus(ctx context.Context, websiteID stri
 	return status, nil
 }
 
-// TODO: Use batch insertion
 func (s *WebsiteTickStorage) BatchInsertTicks(ctx context.Context, ticks []WebsiteTick) error {
 	query := `
 		INSERT INTO "website_tick" (time, response_time_ms, status, region_id, website_id)

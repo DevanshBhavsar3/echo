@@ -15,10 +15,11 @@ var (
 )
 
 type JWTPayload struct {
-	ID    string `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
-	Image string `json:"image"`
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	Email   string `json:"email"`
+	Image   string `json:"image"`
+	IsAdmin bool   `json:"is_admin"`
 }
 
 func init() {

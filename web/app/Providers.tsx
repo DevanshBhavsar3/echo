@@ -1,4 +1,5 @@
-import { ThemeProvider } from '@/components/theme-provider'
+import { AuthProvider } from '@/components/providers/auth-provider'
+import { ThemeProvider } from '@/components/providers/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -9,7 +10,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             enableSystem
             disableTransitionOnChange
         >
-            {children}
+            <AuthProvider>{children}</AuthProvider>
             <Toaster richColors />
         </ThemeProvider>
     )

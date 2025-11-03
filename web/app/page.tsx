@@ -1,11 +1,13 @@
+'use client'
+
 import { Navbar } from '@/components/navbar'
+import { useAuth } from '@/components/providers/auth-provider'
 import { Button } from '@/components/ui/button'
 import { HoverBorderGradient } from '@/components/ui/hover-border-gradient'
-import { isLoggedIn } from '@/lib/auth'
 import Link from 'next/link'
 
-export default async function HomePage() {
-    const loginStatus = await isLoggedIn()
+export default function HomePage() {
+    const { user } = useAuth()
 
     return (
         <div className="relative flex flex-col items-center justify-center px-6 md:px-10">
@@ -31,8 +33,14 @@ export default async function HomePage() {
 
                     <div className="grid gap-3">
                         <div className="grid w-fit grid-cols-2 items-center gap-3">
-                            {loginStatus ? (
-                                <Link href={'/dashboard/monitors'}>
+                            {user ? (
+                                <Link
+                                    href={
+                                        user.isAdmin
+                                            ? '/dashboard/admin'
+                                            : '/dashboard/monitors'
+                                    }
+                                >
                                     <Button size={'sm'}>Dashboard</Button>
                                 </Link>
                             ) : (

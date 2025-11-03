@@ -1,12 +1,14 @@
-import { Github } from 'lucide-react'
-import { Button } from './ui/button'
-import Link from 'next/link'
-import { ModeToggle } from './theme-toggle'
-import { HeaderLine } from './header-line'
-import { isLoggedIn } from '@/lib/auth'
+'use client'
 
-export async function Navbar() {
-    const loginStatus = await isLoggedIn()
+import { Github } from 'lucide-react'
+import Link from 'next/link'
+import { HeaderLine } from './header-line'
+import { ModeToggle } from './theme-toggle'
+import { Button } from './ui/button'
+import { useAuth } from './providers/auth-provider'
+
+export function Navbar() {
+    const { user } = useAuth()
 
     return (
         <div className="bg-background fixed top-0 flex w-full flex-col items-center justify-center">
@@ -45,8 +47,14 @@ export async function Navbar() {
                 </a>
                 <ModeToggle />
 
-                {loginStatus ? (
-                    <Link href={'/dashboard/monitors'}>
+                {user ? (
+                    <Link
+                        href={
+                            user.isAdmin
+                                ? '/dashboard/admin'
+                                : '/dashboard/monitors'
+                        }
+                    >
                         <Button variant={'outline'}>Dashboard</Button>
                     </Link>
                 ) : (

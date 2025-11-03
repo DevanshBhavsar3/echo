@@ -34,6 +34,7 @@ func SetupRoutes(app *fiber.App, handlers handler.Handler) {
 	authRouter := v1Router.Group("/auth")
 	authRouter.Post("/register", handlers.Auth.Register)
 	authRouter.Post("/login", handlers.Auth.Login)
+	authRouter.Post("/admin", handlers.Auth.AdminLogin)
 	authRouter.Get("/me", middleware.AuthMiddleware, handlers.Auth.GetUser)
 
 	oauthRouter := v1Router.Group("/oauth")
@@ -54,4 +55,5 @@ func SetupRoutes(app *fiber.App, handlers handler.Handler) {
 	// Region routes
 	regionRouter := v1Router.Group("/region")
 	regionRouter.Get("/", handlers.Region.GetRegions)
+	regionRouter.Post("/", middleware.AuthMiddleware, middleware.AdminMiddleware, handlers.Region.CreateRegion)
 }
