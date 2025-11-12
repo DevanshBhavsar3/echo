@@ -19,8 +19,10 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from '../ui/sidebar'
+import { useAuth } from '../providers/auth-provider'
 
 export function NavUser({ user }: { user: User }) {
+    const { clearUser } = useAuth()
     const { isMobile } = useSidebar()
 
     return (
@@ -84,7 +86,12 @@ export function NavUser({ user }: { user: User }) {
                             </DropdownMenuItem>
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={logout}>
+                        <DropdownMenuItem
+                            onClick={() => {
+                                clearUser()
+                                logout()
+                            }}
+                        >
                             <LogOut />
                             Log out
                         </DropdownMenuItem>
