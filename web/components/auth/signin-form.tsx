@@ -62,9 +62,9 @@ export function LoginForm({
                             <p className="text-muted-foreground font-sans text-sm">
                                 {state?.error
                                     ? state.error
-                                    : error && error === 'email_already_exists'
-                                      ? 'Email already exists. Try login in with different method.'
-                                      : 'Unexpected error. Please try again.'}
+                                    : error &&
+                                      error === 'email_already_exists' &&
+                                      'Email already exists. Try login with different method.'}
                             </p>
                             <Button
                                 type="submit"

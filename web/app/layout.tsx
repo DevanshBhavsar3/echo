@@ -1,18 +1,6 @@
 import type { Metadata } from 'next'
-import { Geist_Mono, Inter } from 'next/font/google'
 import './globals.css'
 import { Providers } from './Providers'
-
-const inter = Inter({
-    weight: ['500', '700'],
-    subsets: ['latin'],
-    variable: '--font-inter',
-})
-
-const geistMono = Geist_Mono({
-    subsets: ['latin'],
-    variable: '--font-geist-mono',
-})
 
 export const metadata: Metadata = {
     title: 'Echo - Uptime Monitoring',
@@ -26,11 +14,7 @@ export default function RootLayout({
     children: React.ReactNode
 }>) {
     return (
-        <html
-            lang="en"
-            className={`${inter.variable} ${geistMono.variable}`}
-            suppressHydrationWarning
-        >
+        <html lang="en" suppressHydrationWarning>
             <body>
                 <Providers>{children}</Providers>
             </body>

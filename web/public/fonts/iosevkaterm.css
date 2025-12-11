@@ -1,0 +1,7 @@
+@font-face {
+    font-family: 'IosevkaTerm';
+    src: url('./IosevkaTermNerdFontMono-Regular.ttf') format('truetype');
+    font-weight: 200 700;
+    font-display: swap;
+    font-style: normal;
+}

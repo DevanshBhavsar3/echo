@@ -1,51 +1,51 @@
 'use client'
 
-import { Github } from 'lucide-react'
 import Link from 'next/link'
-import { HeaderLine } from './header-line'
-import { ModeToggle } from './theme-toggle'
 import { Button } from './ui/button'
 import { useAuth } from './providers/auth-provider'
+import { motion, useMotionValueEvent, useScroll } from 'motion/react'
+import { useState } from 'react'
 
 export function Navbar() {
+    const { scrollY } = useScroll()
+    const [scrolled, setScrolled] = useState(false)
     const { user } = useAuth()
 
+    useMotionValueEvent(scrollY, 'change', (latest) => {
+        if (latest > 100) {
+            setScrolled(true)
+        } else if (latest < 100) {
+            setScrolled(false)
+        }
+    })
+
     return (
-        <div className="bg-background fixed top-0 flex w-full flex-col items-center justify-center">
-            <HeaderLine />
-            <nav className="flex w-full max-w-7xl flex-col items-center justify-between gap-6 px-2 py-4 md:flex-row">
-                <div className="flex w-full items-center gap-3">
-                    <Link href={'/'}>
-                        <Button variant={'link'} className="text-md">
-                            Echo
-                        </Button>
-                    </Link>
-                    <Link href={'/about'}>
-                        <Button
-                            variant={'link'}
-                            className="text-muted-foreground"
-                        >
-                            About
-                        </Button>
-                    </Link>
-                    <Link href={'/learn'}>
-                        <Button
-                            variant={'link'}
-                            className="text-muted-foreground"
-                        >
-                            Learn
-                        </Button>
-                    </Link>
-                </div>
-                <a
+        <motion.div
+            initial={{
+                y: -100,
+            }}
+            animate={{
+                y: 0,
+            }}
+            layoutId="nav"
+            className={`border-border top-0 z-30 flex w-full flex-col items-center justify-center py-5 ${scrolled && 'bg-background sticky border-b'}`}
+        >
+            <nav className="z-10 flex w-full max-w-7xl flex-col items-center justify-between gap-6 md:flex-row">
+                <Link
+                    href="/"
+                    className="flex w-full items-center gap-3 font-mono"
+                >
+                    Echo
+                </Link>
+                {/*<a
                     href="https://github.com/DevanshBhavsar3/echo"
                     target="_blank"
                 >
                     <Button variant={'ghost'} size={'icon'}>
                         <Github />
                     </Button>
-                </a>
-                <ModeToggle />
+                </a>*/}
+                {/*<ModeToggle />*/}
 
                 {user ? (
                     <Link
@@ -68,6 +68,6 @@ export function Navbar() {
                     </div>
                 )}
             </nav>
-        </div>
+        </motion.div>
     )
 }
